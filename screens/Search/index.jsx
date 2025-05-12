@@ -9,13 +9,12 @@ import {
   Image,
 } from 'react-native';
 import globalStyle from '../../assets/styles/GlobalStyle';
-import {getFontFamily} from '../../assets/fonts/helper';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons';
 import {faHeart} from '@fortawesome/free-solid-svg-icons';
 import {faEye} from '@fortawesome/free-solid-svg-icons';
 import {faList} from '@fortawesome/free-solid-svg-icons';
-import {getBooks} from '../../api/bookApi'; // Adjust the import based on your API structure
+import {getBooks} from '../../api/bookApi';
 
 const SearchScreen = ({navigation}) => {
   const [books, setBooks] = React.useState([]);
@@ -69,6 +68,7 @@ const SearchScreen = ({navigation}) => {
           />
         </View>
 
+        {/* List of Books */}
         <View
           style={{
             paddingHorizontal: 8,
@@ -78,7 +78,10 @@ const SearchScreen = ({navigation}) => {
             data={books}
             keyExtractor={item => item.id}
             renderItem={({item}) => (
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('BookDetail', {bookId: item.id})
+                }>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -88,7 +91,7 @@ const SearchScreen = ({navigation}) => {
                   }}>
                   <Image
                     source={{
-                      uri: item.cover_image,
+                      uri: item?.cover_image,
                     }}
                     style={{
                       width: 80,
@@ -110,7 +113,7 @@ const SearchScreen = ({navigation}) => {
                         fontWeight: 'bold',
                         color: '#2c3e50',
                       }}>
-                      {item.title}
+                      {item?.title}
                     </Text>
 
                     {/* Author */}
@@ -119,7 +122,7 @@ const SearchScreen = ({navigation}) => {
                         fontSize: 12,
                         color: '#95a5a6',
                       }}>
-                      {item.author}
+                      {item?.author}
                     </Text>
 
                     {/* Book description */}
@@ -148,7 +151,7 @@ const SearchScreen = ({navigation}) => {
                             fontSize: 12,
                             color: '#95a5a6',
                           }}>
-                          {item.views_count}
+                          {item?.views_count}
                         </Text>
                       </View>
 
@@ -171,7 +174,7 @@ const SearchScreen = ({navigation}) => {
                             fontSize: 12,
                             color: '#95a5a6',
                           }}>
-                          {item.total_likes}
+                          {item?.total_likes}
                         </Text>
                       </View>
 
@@ -194,7 +197,7 @@ const SearchScreen = ({navigation}) => {
                             fontSize: 12,
                             color: '#95a5a6',
                           }}>
-                          {item.total_chapters}
+                          {item?.total_chapters}
                         </Text>
                       </View>
                     </View>

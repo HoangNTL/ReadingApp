@@ -29,3 +29,13 @@ export const getLatestBooks = async () => {
     throw error;
   }
 };
+
+export const getBookById = async id => {
+  try {
+    const response = await api.get(`/books/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching book by ID:', error);
+    throw error;
+  }
+};

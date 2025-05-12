@@ -84,7 +84,10 @@ const HomeScreen = ({navigation}) => {
             horizontal
             keyExtractor={item => item.id}
             renderItem={({item}) => (
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('BookDetail', {bookId: item.id})
+                }>
                 <Image
                   source={{
                     uri: item.cover_image,
@@ -125,7 +128,10 @@ const HomeScreen = ({navigation}) => {
             horizontal
             keyExtractor={item => item.id}
             renderItem={({item}) => (
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('BookDetail', {bookId: item.id})
+                }>
                 <Image
                   source={{
                     uri: item.cover_image,
