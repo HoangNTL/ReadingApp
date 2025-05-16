@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import globalStyle from '../../assets/styles/GlobalStyle';
@@ -16,34 +17,87 @@ import {
   faList,
   faBookOpen,
   faPlus,
+  faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import {getBookById} from '../../api/bookApi';
-import {faArrowLeft} from '@fortawesome/free-solid-svg-icons';
+import {Alert} from 'react-native';
 
 const BookDetailScreen = ({navigation}) => {
   const route = useRoute();
   const {bookId} = route.params;
   const [book, setBook] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
+      setIsLoading(true);
       try {
         const data = await getBookById(bookId);
+        if (!data) {
+          throw new Error('Book not found');
+        }
         setBook(data);
       } catch (error) {
         console.error('Error fetching book details:', error);
+        Alert.alert('Error', 'Unable to load book details. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchBookDetails();
   }, [bookId]);
 
+  const handleRead = () => {
+    if (!book) {
+      Alert.alert('Error', 'Book details are not loaded yet.');
+      return;
+    }
+    navigation.navigate('Reading', {id: bookId, title: book.title});
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView
+        style={[
+          globalStyle.androidSafeArea,
+          {flex: 1, justifyContent: 'center', alignItems: 'center'},
+        ]}>
+        <ActivityIndicator size="large" color="#000" />
+        <Text style={{marginTop: 10, fontSize: 16, color: '#333'}}>
+          Loading...
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!book) {
+    return (
+      <SafeAreaView
+        style={[
+          globalStyle.androidSafeArea,
+          {flex: 1, justifyContent: 'center', alignItems: 'center'},
+        ]}>
+        <Text style={{fontSize: 18, color: '#333'}}>Book not found.</Text>
+        <TouchableOpacity
+          style={{
+            marginTop: 20,
+            padding: 10,
+            backgroundColor: '#007AFF',
+            borderRadius: 5,
+          }}
+          onPress={() => navigation.goBack()}>
+          <Text style={{color: '#fff', fontSize: 16}}>Go Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={globalStyle.androidSafeArea}>
       {/* Header */}
       <View
         style={{
-          // height: 40,
           backgroundColor: '#fff',
           padding: 10,
           flexDirection: 'row',
@@ -51,45 +105,34 @@ const BookDetailScreen = ({navigation}) => {
           gap: 16,
         }}>
         <TouchableOpacity
-          style={{
-            padding: 10,
-            // position: 'absolute',
-            // top: 40,
-            left: 4,
-          }}
+          style={{padding: 10}}
           onPress={() => navigation.goBack()}>
-          <FontAwesomeIcon icon={faArrowLeft} size={24} />
+          <FontAwesomeIcon icon={faArrowLeft} size={24} color="black" />
         </TouchableOpacity>
-
-        <Text
-          style={{
-            fontSize: 20,
-            fontWeight: 'bold',
-          }}>
-          {book?.title}
+        <Text style={{fontSize: 20, fontWeight: 'bold', flex: 1}}>
+          {book.title}
         </Text>
       </View>
 
-      <View>
+      <View style={{flex: 1, paddingBottom: 16}}>
         {/* Book Cover */}
         <View
           style={{
-            backgroundColor: 'gray',
+            backgroundColor: '#f0f0f0',
             height: 200,
             width: '100%',
-            display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             marginBottom: 12,
           }}>
           <Image
             source={{
-              uri: book?.cover_image,
+              uri: book.cover_image || 'https://via.placeholder.com/150',
             }}
             style={{
               width: '100%',
               height: '100%',
-              resizeMode: 'contain',
+              resizeMode: 'cover',
             }}
           />
         </View>
@@ -97,110 +140,65 @@ const BookDetailScreen = ({navigation}) => {
         {/* Book Title */}
         <View
           style={{
-            display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             marginBottom: 12,
           }}>
-          <Text
-            style={{
-              fontSize: 20,
-            }}>
-            {book?.title}
-          </Text>
+          <Text style={{fontSize: 20, fontWeight: 'bold'}}>{book.title}</Text>
         </View>
 
         {/* Book Author */}
         <View
           style={{
-            display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             marginBottom: 12,
           }}>
-          <Text>{book?.author}</Text>
+          <Text style={{fontSize: 16, color: '#666'}}>{book.author}</Text>
         </View>
 
-        {/* Book Views, likes, chapters*/}
+        {/* Book Views, Likes, Chapters */}
         <View
           style={{
-            display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             marginBottom: 18,
           }}>
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              gap: 10,
-            }}>
+          <View style={{flexDirection: 'row', gap: 20}}>
             {/* Views */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <FontAwesomeIcon
                 icon={faEye}
                 size={16}
                 color="#95a5a6"
-                style={{
-                  marginRight: 5,
-                }}
+                style={{marginRight: 5}}
               />
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: '#95a5a6',
-                }}>
-                {book?.views_count} Reads
+              <Text style={{fontSize: 12, color: '#95a5a6'}}>
+                {book.views_count} Reads
               </Text>
             </View>
-
             {/* Likes */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <FontAwesomeIcon
                 icon={faHeart}
                 size={16}
                 color="#95a5a6"
-                style={{
-                  marginRight: 5,
-                }}
+                style={{marginRight: 5}}
               />
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: '#95a5a6',
-                }}>
-                {book?.total_likes} Likes
+              <Text style={{fontSize: 12, color: '#95a5a6'}}>
+                {book.total_likes} Likes
               </Text>
             </View>
-
             {/* Chapters */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <FontAwesomeIcon
                 icon={faList}
                 size={16}
                 color="#95a5a6"
-                style={{
-                  marginRight: 5,
-                }}
+                style={{marginRight: 5}}
               />
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: '#95a5a6',
-                }}>
-                {book?.total_chapters} Chapters
+              <Text style={{fontSize: 12, color: '#95a5a6'}}>
+                {book.total_chapters} Chapters
               </Text>
             </View>
           </View>
@@ -209,116 +207,69 @@ const BookDetailScreen = ({navigation}) => {
         {/* Buttons */}
         <View
           style={{
-            display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             marginBottom: 24,
           }}>
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              gap: 16,
-              marginBottom: 12,
-            }}>
-            {/* Read button */}
-            <View
+          <View style={{flexDirection: 'row', gap: 16}}>
+            {/* Read Button */}
+            <TouchableOpacity
               style={{
-                display: 'flex',
                 flexDirection: 'row',
-                gap: 16,
-              }}>
-              <TouchableOpacity
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  // justifyContent: 'center',
-                  gap: 4,
-                  backgroundColor: '#000',
-                  borderRadius: 24,
-                  paddingHorizontal: 48,
-                  paddingVertical: 8,
-                }}>
-                <FontAwesomeIcon
-                  icon={faBookOpen}
-                  size={18}
-                  color="#fff"
-                  style={{
-                    marginRight: 5,
-                  }}
-                />
-                <Text
-                  style={{
-                    color: '#fff',
-                    fontSize: 16,
-                  }}>
-                  Read
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Add to Library button */}
-            <View
+                alignItems: 'center',
+                gap: 4,
+                backgroundColor: '#000',
+                borderRadius: 24,
+                paddingHorizontal: 48,
+                paddingVertical: 12,
+              }}
+              onPress={handleRead}>
+              <FontAwesomeIcon
+                icon={faBookOpen}
+                size={18}
+                color="#fff"
+                style={{marginRight: 5}}
+              />
+              <Text style={{color: '#fff', fontSize: 16, fontWeight: '600'}}>
+                Read
+              </Text>
+            </TouchableOpacity>
+            {/* Add to Library Button */}
+            <TouchableOpacity
               style={{
-                display: 'flex',
                 flexDirection: 'row',
-                gap: 16,
-              }}>
-              <TouchableOpacity
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  // justifyContent: 'center',
-                  gap: 4,
-                  backgroundColor: '#fff',
-                  borderColor: '#000',
-                  borderWidth: 1,
-                  borderRadius: 24,
-                  paddingHorizontal: 48,
-                  paddingVertical: 8,
-                }}>
-                <FontAwesomeIcon
-                  icon={faPlus}
-                  size={18}
-                  color="#000"
-                  style={{
-                    marginRight: 5,
-                  }}
-                />
-                <Text
-                  style={{
-                    color: '#000',
-                    fontSize: 16,
-                  }}>
-                  Save
-                </Text>
-              </TouchableOpacity>
-            </View>
+                alignItems: 'center',
+                gap: 4,
+                backgroundColor: '#fff',
+                borderColor: '#000',
+                borderWidth: 1,
+                borderRadius: 24,
+                paddingHorizontal: 48,
+                paddingVertical: 12,
+              }}
+              onPress={() => console.log('Add to library')}>
+              <FontAwesomeIcon
+                icon={faPlus}
+                size={18}
+                color="#000"
+                style={{marginRight: 5}}
+              />
+              <Text style={{color: '#000', fontSize: 16, fontWeight: '600'}}>
+                Save
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Genre */}
-        <View
-          style={{
-            display: 'flex',
-            // justifyContent: 'center',
-            // alignItems: 'center',
-            marginBottom: 24,
-            paddingHorizontal: 16,
-          }}>
-          <Text
-            style={{
-              fontSize: 20,
-              // fontWeight: 'bold',
-              marginBottom: 4,
-            }}>
+        <View style={{marginBottom: 24, paddingHorizontal: 16}}>
+          <Text style={{fontSize: 20, fontWeight: '600', marginBottom: 8}}>
             Genre
           </Text>
           <FlatList
-            horizontal={true}
-            data={book?.genres}
+            horizontal
+            data={book.genres}
+            keyExtractor={item => item.id.toString()}
             renderItem={({item}) => (
               <View
                 style={{
@@ -329,33 +280,18 @@ const BookDetailScreen = ({navigation}) => {
                   marginRight: 8,
                 }}>
                 <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 'bold',
-                    color: '#7f8c8d',
-                  }}>
+                  style={{fontSize: 12, fontWeight: 'bold', color: '#7f8c8d'}}>
                   {item.name}
                 </Text>
               </View>
             )}
+            showsHorizontalScrollIndicator={false}
           />
         </View>
 
         {/* Description */}
-        <View
-          style={{
-            display: 'flex',
-            // justifyContent: 'center',
-            // alignItems: 'center',
-            marginBottom: 24,
-            paddingHorizontal: 16,
-          }}>
-          <Text
-            style={{
-              fontSize: 20,
-              // fontWeight: 'bold',
-              marginBottom: 4,
-            }}>
+        <View style={{marginBottom: 24, paddingHorizontal: 16}}>
+          <Text style={{fontSize: 20, fontWeight: '600', marginBottom: 8}}>
             Description
           </Text>
           <Text
@@ -364,40 +300,12 @@ const BookDetailScreen = ({navigation}) => {
               borderRadius: 8,
               borderColor: '#f0f0f0',
               borderWidth: 1,
-              padding: 8,
-              // marginBottom: 24
+              padding: 12,
+              color: '#333',
             }}>
-            {book?.description}
+            {book.description || 'No description available.'}
           </Text>
         </View>
-
-        {/* Chapters */}
-        {/* <View>
-          <Text
-            style={{
-              fontSize: 20,
-              // fontWeight: 'bold',
-              marginBottom: 4,
-              paddingHorizontal: 16
-            }}
-          >
-            Chapters
-          </Text>
-          <FlatList
-            data={[...Array(10).keys()]}
-            renderItem={({ item }) => (
-              <View
-                style={{
-                  padding: 16,
-                  borderBottomWidth: 1,
-                  borderBottomColor: '#f0f0f0'
-                }}
-              >
-                <Text>Chapter {item + 1}</Text>
-              </View>
-            )}
-          />
-        </View> */}
       </View>
     </SafeAreaView>
   );

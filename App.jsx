@@ -6,6 +6,7 @@ import LoginScreen from './screens/Login/index';
 import RegisterScreen from './screens/Register/index';
 import {UserProvider} from './contexts/UserContext';
 import BookDetailScreen from './screens/BookDetail/index';
+import ReadingScreen from './screens/ReadingScreen/index';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,7 @@ export default function App() {
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="App" component={Tabs} />
           <Stack.Screen name="BookDetail" component={BookDetailScreen} />
+          <Stack.Screen name="Reading" component={ReadingScreen} />
         </Stack.Navigator>
       </UserProvider>
     </NavigationContainer>
