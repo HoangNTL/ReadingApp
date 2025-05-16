@@ -93,7 +93,7 @@ const LoginScreen = () => {
               color: '#0000ff',
               // fontWeight: 'bold',
             }}
-            onPress={() => navigation.navigate('RegisterScreen')}>
+            onPress={() => navigation.navigate('Register')}>
             Register
           </Text>
         </TouchableOpacity>

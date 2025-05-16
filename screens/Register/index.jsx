@@ -30,6 +30,7 @@ const RegisterScreen = ({navigation}) => {
         onPress={() => navigation.goBack()}>
         <FontAwesomeIcon icon={faArrowLeft} size={24} />
       </TouchableOpacity>
+
       <View
         style={{
           flex: 1,
