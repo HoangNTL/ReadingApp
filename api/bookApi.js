@@ -85,3 +85,15 @@ export const getPreviousChapter = async (bookId, currentOrder) => {
     throw error;
   }
 };
+
+export const likeBook = async (bookId, userId) => {
+  try {
+    const response = await api.post(`/books/${bookId}/like`, {
+      user_id: userId,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error liking book:', error);
+    throw error;
+  }
+};

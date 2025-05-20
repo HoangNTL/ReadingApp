@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useContext} from 'react';
 import {
   View,
   Text,
@@ -22,15 +22,17 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import {faArrowLeft} from '@fortawesome/free-solid-svg-icons';
+import {faArrowLeft, faHeart} from '@fortawesome/free-solid-svg-icons';
 
 import {
   getFirstChapter,
   getPagesByChapterId,
   getNextChapter,
   getPreviousChapter,
+  // likeBook,
 } from '../../api/bookApi';
 import globalStyle from '../../assets/styles/GlobalStyle';
+import {UserContext} from '../../contexts/UserContext';
 
 const {width} = Dimensions.get('window');
 const SWIPE_THRESHOLD = width * 0.2;
@@ -45,20 +47,23 @@ const ReadingScreen = () => {
   const [pages, setPages] = useState([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
 
   const isMounted = useRef(true);
   const translateX = useSharedValue(0);
 
-  useEffect(() => {
-    isMounted.current = true;
-    loadInitialChapter();
+  const {user} = useContext(UserContext);
 
-    return () => {
-      isMounted.current = false;
-    };
-  }, [id]);
+  // const handleLike = async bookId => {
+  //   try {
+  //     const result = await likeBook(bookId);
+  //     Alert.alert('Thành công', 'Bạn đã thích truyện này.', result.total_likes);
+  //   } catch (err) {
+  //     console.error('Like failed:', err);
+  //   }
+  // };
 
-  const loadInitialChapter = async () => {
+  const loadInitialChapter = React.useCallback(async () => {
     if (!id) return;
     setIsLoading(true);
     try {
@@ -74,7 +79,16 @@ const ReadingScreen = () => {
     } finally {
       if (isMounted.current) setIsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    isMounted.current = true;
+    loadInitialChapter();
+
+    return () => {
+      isMounted.current = false;
+    };
+  }, [id, loadInitialChapter]);
 
   const changeChapter = async (chapterFn, fallbackMsg) => {
     setIsLoading(true);
@@ -98,10 +112,11 @@ const ReadingScreen = () => {
     if (currentPageIndex < pages.length - 1) {
       setCurrentPageIndex(i => i + 1);
     } else {
-      changeChapter(
-        () => getNextChapter(id, currentChapter.chapter_order),
-        'Đây là chương cuối cùng.',
-      );
+      if (currentChapter.chapter_order === currentChapter.total_chapters) {
+        return;
+      }
+
+      changeChapter(() => getNextChapter(id, currentChapter.chapter_order));
     }
     translateX.value = 0;
   };
@@ -110,10 +125,10 @@ const ReadingScreen = () => {
     if (currentPageIndex > 0) {
       setCurrentPageIndex(i => i - 1);
     } else {
-      changeChapter(
-        () => getPreviousChapter(id, currentChapter.chapter_order),
-        'Đây là chương đầu tiên.',
-      );
+      if (currentChapter.chapter_order === 1) {
+        return;
+      }
+      changeChapter(() => getPreviousChapter(id, currentChapter.chapter_order));
     }
     translateX.value = 0;
   };
@@ -189,6 +204,16 @@ const ReadingScreen = () => {
                       }}>
                       {title}
                     </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        // handleLike(id);
+                        setIsLiked(!isLiked);
+                      }}>
+                      <FontAwesomeIcon
+                        icon={faHeart}
+                        color={isLiked ? '#e74c3c' : '#95a5a6'}
+                      />
+                    </TouchableOpacity>
                   </View>
                 )}
 

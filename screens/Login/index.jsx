@@ -1,16 +1,28 @@
-import React, {useState} from 'react';
-import {View, Text, TouchableOpacity, TextInput} from 'react-native';
+import React, {useState, useContext} from 'react';
+import {View, Text, TouchableOpacity, TextInput, Alert} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {UserContext} from '../../contexts/UserContext';
 
-const LoginScreen = () => {
+const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const navigation = useNavigation();
+  const {login} = useContext(UserContext);
+
+  // const navigation = useNavigation();
 
   const handleSubmit = () => {
-    console.log('Email:', email);
-    console.log('Password:', password);
+    if (!email || !password) {
+      Alert.alert('Please fill in all fields.');
+      return;
+    }
+
+    const success = login(email, password);
+
+    if (!success) {
+      Alert.alert('Login failed. Please check your credentials.');
+      return;
+    }
 
     navigation.navigate('App');
   };

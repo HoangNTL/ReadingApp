@@ -1,7 +1,9 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import {Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faArrowLeft} from '@fortawesome/free-solid-svg-icons';
+import {UserContext} from '../../contexts/UserContext';
+import {Alert} from 'react-native';
 
 const RegisterScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
@@ -9,11 +11,20 @@ const RegisterScreen = ({navigation}) => {
   const [password, setPassword] = useState('');
   //   const [dob, setDob] = useState(new Date());
 
+  const {register} = useContext(UserContext);
+
   const handleSubmit = () => {
-    console.log('Username:', username);
-    console.log('Email:', email);
-    console.log('Password:', password);
-    // console.log('Date of Birth:', dob);
+    if (!username || !email || !password) {
+      Alert.alert('Please fill in all fields.');
+      return;
+    }
+
+    const success = register(username, email, password);
+
+    if (!success) {
+      Alert.alert('Registration failed. Please check your credentials.');
+      return;
+    }
 
     navigation.navigate('App');
   };
