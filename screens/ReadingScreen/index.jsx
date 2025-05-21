@@ -29,7 +29,8 @@ import {
   getPagesByChapterId,
   getNextChapter,
   getPreviousChapter,
-  // likeBook,
+  likeBook,
+  getLikeStatus,
 } from '../../api/bookApi';
 import globalStyle from '../../assets/styles/GlobalStyle';
 import {UserContext} from '../../contexts/UserContext';
@@ -54,14 +55,26 @@ const ReadingScreen = () => {
 
   const {user} = useContext(UserContext);
 
-  // const handleLike = async bookId => {
-  //   try {
-  //     const result = await likeBook(bookId);
-  //     Alert.alert('Thành công', 'Bạn đã thích truyện này.', result.total_likes);
-  //   } catch (err) {
-  //     console.error('Like failed:', err);
-  //   }
-  // };
+  const handleLike = async (bookId, userId) => {
+    try {
+      const result = await likeBook(bookId, userId);
+      console.log('Like result:', result);
+      setIsLiked(!isLiked);
+    } catch (err) {
+      console.error('Like failed:', err);
+    }
+  };
+
+  const checkLikeStatus = React.useCallback(async () => {
+    try {
+      const result = await getLikeStatus(id, user.id);
+      // setIsLiked(result?.liked); // Giả sử API trả về { liked: true/false }
+      console.log('Like status:', result);
+      setIsLiked(result?.is_liked);
+    } catch (error) {
+      console.error('Failed to get like status:', error);
+    }
+  }, [id, user?.id]);
 
   const loadInitialChapter = React.useCallback(async () => {
     if (!id) return;
@@ -85,10 +98,14 @@ const ReadingScreen = () => {
     isMounted.current = true;
     loadInitialChapter();
 
+    if (id && user?.id) {
+      checkLikeStatus();
+    }
+
     return () => {
       isMounted.current = false;
     };
-  }, [id, loadInitialChapter]);
+  }, [id, loadInitialChapter, user?.id, checkLikeStatus]);
 
   const changeChapter = async (chapterFn, fallbackMsg) => {
     setIsLoading(true);
@@ -206,8 +223,7 @@ const ReadingScreen = () => {
                     </Text>
                     <TouchableOpacity
                       onPress={() => {
-                        // handleLike(id);
-                        setIsLiked(!isLiked);
+                        handleLike(id, user.id);
                       }}>
                       <FontAwesomeIcon
                         icon={faHeart}

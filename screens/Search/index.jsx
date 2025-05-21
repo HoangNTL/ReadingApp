@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   SafeAreaView,
   Text,
@@ -7,6 +7,7 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  Keyboard,
 } from 'react-native';
 import globalStyle from '../../assets/styles/GlobalStyle';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
@@ -14,10 +15,11 @@ import {faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons';
 import {faHeart} from '@fortawesome/free-solid-svg-icons';
 import {faEye} from '@fortawesome/free-solid-svg-icons';
 import {faList} from '@fortawesome/free-solid-svg-icons';
-import {getBooks} from '../../api/bookApi';
+import {getBookByKeyword, getBooks} from '../../api/bookApi';
 
 const SearchScreen = ({navigation}) => {
   const [books, setBooks] = React.useState([]);
+  const [keyword, setKeyword] = useState('');
 
   React.useEffect(() => {
     const fetchBooks = async () => {
@@ -31,6 +33,19 @@ const SearchScreen = ({navigation}) => {
 
     fetchBooks();
   }, []);
+
+  const handleSearch = async () => {
+    if (!keyword.trim()) return;
+    try {
+      const response = await getBookByKeyword(keyword);
+      console.log('Search results:', response);
+      setBooks(response);
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      Keyboard.dismiss();
+    }
+  };
 
   return (
     <SafeAreaView style={globalStyle.androidSafeArea}>
@@ -64,7 +79,11 @@ const SearchScreen = ({navigation}) => {
               flex: 1,
               height: '100%',
             }}
+            value={keyword}
+            onChangeText={setKeyword}
             placeholder="Search for books..."
+            returnKeyType="search"
+            onSubmitEditing={handleSearch}
           />
         </View>
 

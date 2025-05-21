@@ -146,7 +146,7 @@ const HomeScreen = ({navigation}) => {
             marginBottom: 10,
             marginTop: 10,
           }}>
-          Host
+          Hot
         </Text>
         <View>
           <FlatList

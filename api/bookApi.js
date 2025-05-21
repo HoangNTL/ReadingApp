@@ -97,3 +97,45 @@ export const likeBook = async (bookId, userId) => {
     throw error;
   }
 };
+
+export const getLikeStatus = async (bookId, userId) => {
+  try {
+    const response = await api.get(`/books/${bookId}/like`, {
+      params: {
+        user_id: userId,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error checking like status:', error);
+    throw error;
+  }
+};
+
+export const getLikedBooks = async userId => {
+  try {
+    const response = await api.get('/books/like', {
+      params: {
+        user_id: userId,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching liked books:', error);
+    throw error;
+  }
+};
+
+export const getBookByKeyword = async keyword => {
+  try {
+    const response = await api.get('/books/search', {
+      params: {
+        keyword,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching books:', error);
+    throw error;
+  }
+};
