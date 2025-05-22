@@ -1,4 +1,4 @@
-import React, {useEffect, useContext} from 'react';
+import React, {useEffect, useContext, useState} from 'react';
 import {
   SafeAreaView,
   Text,
@@ -11,10 +11,13 @@ import globalStyle from '../../assets/styles/GlobalStyle';
 import {getFontFamily} from '../../assets/fonts/helper';
 import {getLikedBooks} from '../../api/bookApi';
 import {UserContext} from '../../contexts/UserContext';
+import {useLoading} from '../../hooks/useLoading';
 
 const LibraryScreen = ({navigation}) => {
+  const [books, setBooks] = useState([]);
+
   const {user} = useContext(UserContext);
-  const [books, setBooks] = React.useState([]);
+  // const {loading, setLoading} = useLoading();
   const userId = user?.id;
 
   useEffect(() => {
@@ -38,8 +41,9 @@ const LibraryScreen = ({navigation}) => {
     <SafeAreaView style={globalStyle.androidSafeArea}>
       <Text
         style={{
+          fontSize: 24,
+          color: '#000',
           fontFamily: getFontFamily('Inter', '600'),
-          fontSize: 20,
         }}>
         Library
       </Text>
@@ -54,7 +58,7 @@ const LibraryScreen = ({navigation}) => {
         <FlatList
           numColumns={3}
           contentContainerStyle={{
-            gap: 12, // RN 0.71+ hỗ trợ gap (nếu bạn dùng version mới)
+            gap: 12,
             paddingBottom: 20,
           }}
           columnWrapperStyle={{

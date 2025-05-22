@@ -1,56 +1,49 @@
 import React, {useState, useContext} from 'react';
-import {View, Text, TouchableOpacity, TextInput, Alert} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {View, Text, TouchableOpacity, Alert} from 'react-native';
 import {UserContext} from '../../contexts/UserContext';
+import {TextInputCustom} from '../../components/TextInputCustom';
+import {PasswordInput} from '../../components/PasswordInput';
+import {ButtonCustom} from '../../components/ButtonCustom';
+import {styles} from './style';
+import {useLoading} from '../../hooks/useLoading';
 
 const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const {login} = useContext(UserContext);
+  const {loading, setLoading} = useLoading();
 
-  // const navigation = useNavigation();
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!email || !password) {
       Alert.alert('Please fill in all fields.');
       return;
     }
 
-    const success = login(email, password);
-
-    if (!success) {
-      Alert.alert('Login failed. Please check your credentials.');
-      return;
+    setLoading(true);
+    try {
+      const success = await login(email, password);
+      if (!success) {
+        Alert.alert('Login failed. Please check your credentials.');
+        return;
+      }
+      navigation.navigate('App');
+    } catch (error) {
+      Alert.alert('Error', 'An error occurred during login.');
+      console.error('Login error:', error);
+    } finally {
+      setLoading(false);
     }
-
-    navigation.navigate('App');
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 20,
-      }}>
-      <Text
-        style={{
-          fontSize: 24,
-          fontWeight: 'bold',
-        }}>
-        Login
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Login</Text>
 
       {/* Email */}
-      <View style={{marginTop: 20}}>
-        <Text>Email</Text>
-        <TextInput
-          style={{
-            borderWidth: 1,
-            borderColor: '#000000',
-            padding: 12,
-          }}
+      <View style={styles.inputGroup}>
+        <TextInputCustom
+          label="Email"
           value={email}
           onChangeText={setEmail}
           placeholder="Email"
@@ -58,14 +51,9 @@ const LoginScreen = ({navigation}) => {
       </View>
 
       {/* Password */}
-      <View style={{marginTop: 20, marginBottom: 24}}>
-        <Text>Password</Text>
-        <TextInput
-          style={{
-            borderWidth: 1,
-            borderColor: '#000000',
-            padding: 12,
-          }}
+      <View style={styles.inputGroup}>
+        <PasswordInput
+          label="Password"
           value={password}
           onChangeText={setPassword}
           placeholder="Password"
@@ -74,37 +62,20 @@ const LoginScreen = ({navigation}) => {
       </View>
 
       {/* Button */}
-      <TouchableOpacity
-        style={{
-          backgroundColor: '#000000',
-          padding: 10,
-          borderRadius: 5,
-          marginTop: 10,
-          alignItems: 'center',
-        }}
-        onPress={handleSubmit}>
-        <Text
-          style={{
-            color: '#ffff',
-            fontSize: 18,
-          }}>
-          Login
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.buttonGroup}>
+        <ButtonCustom
+          label="Login"
+          onPress={handleSubmit}
+          isLoading={loading}
+        />
+      </View>
 
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'center',
-          marginTop: 20,
-        }}>
-        <Text>Don't have an account? </Text>
+      {/* register link */}
+      <View style={styles.registerContainer}>
+        <Text style={styles.registerText}>Don't have an account? </Text>
         <TouchableOpacity>
           <Text
-            style={{
-              color: '#0000ff',
-              // fontWeight: 'bold',
-            }}
+            style={styles.registerLink}
             onPress={() => navigation.navigate('Register')}>
             Register
           </Text>

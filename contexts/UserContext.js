@@ -1,5 +1,4 @@
 import {createContext, useState} from 'react';
-import {Alert} from 'react-native';
 import {loginApi, registerApi} from '../api/authApi';
 
 export const UserContext = createContext();
@@ -12,7 +11,6 @@ export const UserProvider = ({children}) => {
 
     if (response) {
       setUser(response.user);
-      Alert.alert('Login successful', 'Welcome back!');
       return true;
     }
 
@@ -24,7 +22,6 @@ export const UserProvider = ({children}) => {
 
     if (response) {
       setUser(response.user);
-      Alert.alert('Registration successful', 'Welcome!');
       return true;
     }
 
@@ -33,7 +30,6 @@ export const UserProvider = ({children}) => {
 
   async function logout() {
     setUser(null);
-    Alert.alert('Logout successful', 'See you next time!');
   }
 
   return (

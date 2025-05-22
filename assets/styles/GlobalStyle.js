@@ -6,7 +6,7 @@ const statusBarHeight = StatusBar.currentHeight;
 const globalStyle = StyleSheet.create({
   androidSafeArea: {
     paddingTop: isAndroid ? statusBarHeight : 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFF',
     flex: 1,
   },
 });
