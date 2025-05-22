@@ -33,6 +33,7 @@ const BookDetailScreen = ({navigation}) => {
           throw new Error('Book not found');
         }
         setBook(data);
+        console.log('Book details:', data);
       } catch (error) {
         console.error('Error fetching book details:', error);
         Alert.alert('Error', 'Unable to load book details. Please try again.');
@@ -52,106 +53,100 @@ const BookDetailScreen = ({navigation}) => {
     navigation.navigate('Reading', {id: bookId, title: book.title});
   };
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
-  // if (!book) {
-  //   return (
-  //     <SafeAreaView style={globalStyle.androidSafeArea}>
-  //       <View style={styles.center}>
-  //         <Text>Book not found.</Text>
-  //       </View>
-  //     </SafeAreaView>
-  //   );
-  // }
-
   return (
     <SafeAreaView style={globalStyle.androidSafeArea}>
-      <Header title={book.title} />
-
-      <View style={styles.content}>
-        {/* Book Cover */}
-        <View style={styles.coverContainer}>
-          <Image
-            source={{
-              uri: book.cover_image,
-            }}
-            style={styles.coverImage}
-          />
+      {loading || !book ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
         </View>
+      ) : (
+        <>
+          <Header title={book?.title} />
 
-        {/* Book Title */}
-        <View style={styles.center}>
-          <Text style={styles.title}>{book.title}</Text>
-        </View>
+          <View style={styles.content}>
+            {/* Book Cover */}
+            <View style={styles.coverContainer}>
+              <Image
+                source={{
+                  uri: book.cover_image,
+                }}
+                style={styles.coverImage}
+              />
+            </View>
 
-        {/* Book Author */}
-        <View style={styles.center}>
-          <Text style={styles.author}>{book.author}</Text>
-        </View>
+            {/* Book Title */}
+            <View style={styles.center}>
+              <Text style={styles.title}>{book?.title}</Text>
+            </View>
 
-        {/* Book Views, Likes, Chapters */}
-        <View style={styles.center}>
-          <View style={styles.statsRow}>
-            {/* Views */}
-            <BookStatItem icon={faEye} value={book.views_count} text="Reads" />
+            {/* Book Author */}
+            <View style={styles.center}>
+              <Text style={styles.author}>{book.author}</Text>
+            </View>
 
-            {/* Likes */}
-            <BookStatItem
-              icon={faHeart}
-              value={book.total_likes}
-              text="Likes"
-            />
+            {/* Book Views, Likes, Chapters */}
+            <View style={styles.center}>
+              <View style={styles.statsRow}>
+                {/* Views */}
+                <BookStatItem
+                  icon={faEye}
+                  value={book.views_count}
+                  text="Reads"
+                />
 
-            {/* Chapters */}
-            <BookStatItem
-              icon={faList}
-              value={book.total_chapters}
-              text="Chapters"
-            />
+                {/* Likes */}
+                <BookStatItem
+                  icon={faHeart}
+                  value={book.total_likes}
+                  text="Likes"
+                />
+
+                {/* Chapters */}
+                <BookStatItem
+                  icon={faList}
+                  value={book.total_chapters}
+                  text="Chapters"
+                />
+              </View>
+            </View>
+
+            {/* Buttons */}
+            <View style={styles.center}>
+              <View style={styles.buttonRow}>
+                {/* Read Button */}
+                <IconButton
+                  variant="solid"
+                  icon={faBookOpen}
+                  label="Read"
+                  onPress={handleRead}
+                />
+
+                {/* Save Button */}
+                <IconButton
+                  variant="outline"
+                  icon={faPlus}
+                  label="Save"
+                  onPress={() => console.log('Add to library')}
+                />
+              </View>
+            </View>
+
+            {/* Genre */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Genre</Text>
+              <GenreList book={book} />
+            </View>
+
+            {/* Description */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Description</Text>
+              <Text style={styles.description}>
+                {book.description || 'No description available.'}
+              </Text>
+            </View>
           </View>
-        </View>
-
-        {/* Buttons */}
-        <View style={styles.center}>
-          <View style={styles.buttonRow}>
-            {/* Read Button */}
-            <IconButton
-              variant="solid"
-              icon={faBookOpen}
-              label="Read"
-              onPress={handleRead}
-            />
-
-            {/* Save Button */}
-            <IconButton
-              variant="outline"
-              icon={faPlus}
-              label="Save"
-              onPress={() => console.log('Add to library')}
-            />
-          </View>
-        </View>
-
-        {/* Genre */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Genre</Text>
-          <GenreList book={book} />
-        </View>
-
-        {/* Description */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.description}>
-            {book.description || 'No description available.'}
-          </Text>
-        </View>
-      </View>
+        </>
+      )}
     </SafeAreaView>
   );
 };

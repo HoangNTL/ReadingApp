@@ -22,7 +22,9 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import {faArrowLeft, faHeart} from '@fortawesome/free-solid-svg-icons';
+import {faArrowLeft} from '@fortawesome/free-solid-svg-icons';
+import {faHeart as faHeartSolid} from '@fortawesome/free-solid-svg-icons';
+import {faHeart as faHeartRegular} from '@fortawesome/free-regular-svg-icons';
 
 import {
   getFirstChapter,
@@ -226,7 +228,7 @@ const ReadingScreen = () => {
                         handleLike(id, user.id);
                       }}>
                       <FontAwesomeIcon
-                        icon={faHeart}
+                        icon={isLiked ? faHeartSolid : faHeartRegular}
                         color={isLiked ? '#e74c3c' : '#95a5a6'}
                       />
                     </TouchableOpacity>

@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -13,7 +13,7 @@ import {BookList} from './BookList';
 import {useLoading} from '../../hooks/useLoading';
 
 const SearchScreen = ({navigation}) => {
-  const [books, setBooks] = React.useState([]);
+  const [books, setBooks] = useState([]);
   const {loading, setLoading} = useLoading();
 
   useEffect(() => {
