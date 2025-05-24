@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, SafeAreaView, Image, ActivityIndicator} from 'react-native';
+import {View, Text, Image, ActivityIndicator} from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import globalStyle from '../../assets/styles/GlobalStyle';
 import {
@@ -33,7 +33,6 @@ const BookDetailScreen = ({navigation}) => {
           throw new Error('Book not found');
         }
         setBook(data);
-        console.log('Book details:', data);
       } catch (error) {
         console.error('Error fetching book details:', error);
         Alert.alert('Error', 'Unable to load book details. Please try again.');
@@ -54,7 +53,7 @@ const BookDetailScreen = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView style={globalStyle.androidSafeArea}>
+    <View style={globalStyle.androidSafeArea}>
       {loading || !book ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
@@ -147,7 +146,7 @@ const BookDetailScreen = ({navigation}) => {
           </View>
         </>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

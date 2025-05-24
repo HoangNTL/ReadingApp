@@ -1,11 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {
-  SafeAreaView,
-  View,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import {View, StyleSheet, Alert, ActivityIndicator} from 'react-native';
 import globalStyle from '../../assets/styles/GlobalStyle';
 import {getTopViewedBooks, getLatestBooks} from '../../api/bookApi';
 import {Header} from './Header';
@@ -41,7 +35,7 @@ const HomeScreen = ({navigation}) => {
   }, [setLoading]);
 
   return (
-    <SafeAreaView style={globalStyle.androidSafeArea}>
+    <View style={globalStyle.androidSafeArea}>
       <Header />
 
       {/* Content */}
@@ -64,7 +58,7 @@ const HomeScreen = ({navigation}) => {
         )}
         {/* Hot Books */}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

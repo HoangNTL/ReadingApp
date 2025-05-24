@@ -1,11 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  View,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import {StyleSheet, View, Alert, ActivityIndicator} from 'react-native';
 import globalStyle from '../../assets/styles/GlobalStyle';
 import {getBooks} from '../../api/bookApi';
 import {SearchBar} from './SearchBar';
@@ -34,7 +28,7 @@ const SearchScreen = ({navigation}) => {
   }, [setLoading]);
 
   return (
-    <SafeAreaView style={globalStyle.androidSafeArea}>
+    <View style={globalStyle.androidSafeArea}>
       <SearchBar setBooks={setBooks} />
       <View style={styles.contentContainer}>
         {loading ? (
@@ -45,7 +39,7 @@ const SearchScreen = ({navigation}) => {
           <BookList books={books} />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

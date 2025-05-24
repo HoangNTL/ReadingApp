@@ -1,28 +1,15 @@
-import React, {useEffect, useState, useRef, useContext} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {
   View,
   Text,
   Dimensions,
-  SafeAreaView,
   TouchableOpacity,
   ActivityIndicator,
-  TouchableWithoutFeedback,
-  Alert,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {
-  GestureHandlerRootView,
-  GestureDetector,
-  Gesture,
-} from 'react-native-gesture-handler';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  runOnJS,
-} from 'react-native-reanimated';
+import {useRoute} from '@react-navigation/native';
+import {GestureDetector, Gesture} from 'react-native-gesture-handler';
+import {runOnJS} from 'react-native-reanimated';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import {faArrowLeft} from '@fortawesome/free-solid-svg-icons';
 import {faHeart as faHeartSolid} from '@fortawesome/free-solid-svg-icons';
 import {faHeart as faHeartRegular} from '@fortawesome/free-regular-svg-icons';
 
@@ -36,222 +23,240 @@ import {
 } from '../../api/bookApi';
 import globalStyle from '../../assets/styles/GlobalStyle';
 import {UserContext} from '../../contexts/UserContext';
+import {BackButton} from '../../components/BackButton';
+import {getFontFamily} from '../../assets/fonts/helper';
+import {useLoading} from '../../hooks/useLoading';
 
 const {width} = Dimensions.get('window');
-const SWIPE_THRESHOLD = width * 0.2;
 
-const ReadingScreen = () => {
+const ReadingScreen = ({navigation}) => {
   const route = useRoute();
-  const navigation = useNavigation();
-  const {id, title = 'Đang tải...'} = route.params || {};
+  const {id, title} = route.params || {}; // bookId and title
+  const {user} = useContext(UserContext);
 
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [currentChapter, setCurrentChapter] = useState(null);
-  const [pages, setPages] = useState([]);
+  const [currentPages, setCurrentPages] = useState([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const {loading, setLoading} = useLoading();
+  const [like, setLike] = useState(false);
 
-  const isMounted = useRef(true);
-  const translateX = useSharedValue(0);
-
-  const {user} = useContext(UserContext);
-
-  const handleLike = async (bookId, userId) => {
+  const fetchInitialChapter = React.useCallback(async () => {
     try {
-      const result = await likeBook(bookId, userId);
-      console.log('Like result:', result);
-      setIsLiked(!isLiked);
-    } catch (err) {
-      console.error('Like failed:', err);
-    }
-  };
-
-  const checkLikeStatus = React.useCallback(async () => {
-    try {
-      const result = await getLikeStatus(id, user.id);
-      // setIsLiked(result?.liked); // Giả sử API trả về { liked: true/false }
-      console.log('Like status:', result);
-      setIsLiked(result?.is_liked);
-    } catch (error) {
-      console.error('Failed to get like status:', error);
-    }
-  }, [id, user?.id]);
-
-  const loadInitialChapter = React.useCallback(async () => {
-    if (!id) return;
-    setIsLoading(true);
-    try {
+      setLoading(true);
       const chapter = await getFirstChapter(id);
-      const pageList = await getPagesByChapterId(chapter.id);
-      if (isMounted.current) {
-        setCurrentChapter(chapter);
-        setPages(pageList);
-        setCurrentPageIndex(0);
-      }
-    } catch (err) {
-      Alert.alert('Lỗi', 'Không thể tải chương đầu.');
+      const pages = await getPagesByChapterId(chapter.id);
+      setCurrentChapter(chapter);
+      setCurrentPages(pages);
+      setCurrentPageIndex(0);
+    } catch (error) {
+      console.error('Error loading initial chapter:', error);
     } finally {
-      if (isMounted.current) setIsLoading(false);
+      setLoading(false);
     }
-  }, [id]);
+  }, [id, setLoading]);
+
+  const fetchLikeStatus = React.useCallback(async () => {
+    try {
+      const likeStatus = await getLikeStatus(id, user.id);
+      setLike(likeStatus.is_liked);
+    } catch (error) {
+      console.error('Error fetching like status:', error);
+    }
+  }, [id, user.id]);
 
   useEffect(() => {
-    isMounted.current = true;
-    loadInitialChapter();
-
-    if (id && user?.id) {
-      checkLikeStatus();
+    if (id) {
+      fetchInitialChapter();
     }
+    fetchLikeStatus();
+  }, [id, fetchInitialChapter, fetchLikeStatus]);
 
-    return () => {
-      isMounted.current = false;
-    };
-  }, [id, loadInitialChapter, user?.id, checkLikeStatus]);
-
-  const changeChapter = async (chapterFn, fallbackMsg) => {
-    setIsLoading(true);
+  const changeChapter = async chapter => {
     try {
-      const chapter = await chapterFn();
-      const pageList = await getPagesByChapterId(chapter.id);
-      if (isMounted.current) {
-        setCurrentChapter(chapter);
-        setPages(pageList);
-        setCurrentPageIndex(0);
-        translateX.value = 0;
-      }
-    } catch {
-      if (isMounted.current) Alert.alert('Thông báo', fallbackMsg);
+      setLoading(true);
+      const pages = await getPagesByChapterId(chapter.id);
+      setCurrentChapter(chapter);
+      setCurrentPages(pages);
+      setCurrentPageIndex(0);
+    } catch (error) {
+      console.error('Error changing chapter:', error);
     } finally {
-      if (isMounted.current) setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const goToNextPage = () => {
-    if (currentPageIndex < pages.length - 1) {
-      setCurrentPageIndex(i => i + 1);
-    } else {
-      if (currentChapter.chapter_order === currentChapter.total_chapters) {
-        return;
+  const goToNextPage = async () => {
+    const isLastPage = currentPageIndex === currentPages.length - 1;
+
+    if (isLastPage) {
+      try {
+        setLoading(true);
+        const nextChapter = await getNextChapter(
+          id,
+          currentChapter?.chapter_order,
+        );
+        if (nextChapter) {
+          await changeChapter(nextChapter);
+        } else {
+          console.log('Reached the last chapter');
+        }
+      } catch (error) {
+        console.error('Error going to next chapter:', error);
+      } finally {
+        setLoading(false);
       }
-
-      changeChapter(() => getNextChapter(id, currentChapter.chapter_order));
-    }
-    translateX.value = 0;
-  };
-
-  const goToPrevPage = () => {
-    if (currentPageIndex > 0) {
-      setCurrentPageIndex(i => i - 1);
     } else {
-      if (currentChapter.chapter_order === 1) {
-        return;
-      }
-      changeChapter(() => getPreviousChapter(id, currentChapter.chapter_order));
+      setCurrentPageIndex(currentPageIndex + 1);
     }
-    translateX.value = 0;
   };
-  // NEW: Replace PanGestureHandler with Gesture.Pan
+
+  const goToPreviousPage = async () => {
+    const isFirstPage = currentPageIndex === 0;
+
+    if (isFirstPage) {
+      try {
+        setLoading(true);
+        const previousChapter = await getPreviousChapter(
+          id,
+          currentChapter?.chapter_order,
+        );
+        if (previousChapter) {
+          const pages = await getPagesByChapterId(previousChapter.id);
+          setCurrentChapter(previousChapter);
+          setCurrentPages(pages);
+          setCurrentPageIndex(pages.length - 1);
+        } else {
+          console.log('Reached the first chapter');
+        }
+      } catch (error) {
+        console.error('Error going to previous chapter:', error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setCurrentPageIndex(currentPageIndex - 1);
+    }
+  };
+
+  const handleLikePress = async () => {
+    try {
+      const result = await likeBook(id, user.id);
+      setLike(result.is_liked);
+    } catch (error) {
+      console.error('Error liking book:', error);
+    }
+  };
+
+  // TAP gesture - Xử lý tap trái/phải giữa
+  const singleTap = Gesture.Tap()
+    .maxDuration(250)
+    .numberOfTaps(1)
+    .onStart(event => {
+      const leftThreshold = width * 0.3; // 30%
+      const rightThreshold = width * 0.7; // 70%
+
+      if (event.x < leftThreshold) {
+        // Tap vùng trái màn hình => trang trước
+        runOnJS(goToPreviousPage)();
+      } else if (event.x >= rightThreshold) {
+        // Tap vùng phải màn hình => trang tiếp
+        runOnJS(goToNextPage)();
+      } else {
+        // Tap giữa => ẩn/hiện header
+        runOnJS(setIsHeaderVisible)(prev => !prev);
+      }
+    });
+
+  // PAN gesture - Xử lý vuốt trái/phải để chuyển trang
   const panGesture = Gesture.Pan().onEnd(event => {
-    if (event.translationX < -SWIPE_THRESHOLD) {
+    const swipeThreshold = 50; // ngưỡng vuốt tối thiểu
+    if (event.translationX < -swipeThreshold) {
+      // Vuốt sang trái => trang tiếp theo
       runOnJS(goToNextPage)();
-    } else if (event.translationX > SWIPE_THRESHOLD) {
-      runOnJS(goToPrevPage)();
-    } else {
-      translateX.value = withTiming(0);
+    } else if (event.translationX > swipeThreshold) {
+      // Vuốt sang phải => trang trước
+      runOnJS(goToPreviousPage)();
     }
   });
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{translateX: translateX.value}],
-  }));
-
-  const onTap = e => {
-    const x = e.nativeEvent.locationX;
-    if (x < width * 0.3) {
-      goToPrevPage();
-    } else if (x > width * 0.7) {
-      goToNextPage();
-    } else {
-      setIsHeaderVisible(v => !v);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <SafeAreaView style={globalStyle.androidSafeArea}>
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <ActivityIndicator size="large" />
-          <Text style={{marginTop: 10}}>Đang tải...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // Kết hợp Gesture để xử lý tap + pan đồng thời
+  const combinedGesture = Gesture.Simultaneous(singleTap, panGesture);
 
   return (
-    <SafeAreaView style={globalStyle.androidSafeArea}>
-      <GestureHandlerRootView style={{flex: 1}}>
-        <TouchableWithoutFeedback onPress={onTap}>
-          <View style={{flex: 1}}>
-            <GestureDetector gesture={panGesture}>
-              <Animated.View style={[{flex: 1}, animatedStyle]}>
-                {/* Header */}
-                {isHeaderVisible && (
-                  <View
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 10,
-                      paddingHorizontal: 16,
-                      paddingVertical: 10,
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      zIndex: 10,
-                      boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-                    }}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
-                      <FontAwesomeIcon icon={faArrowLeft} />
-                    </TouchableOpacity>
-                    <Text
-                      style={{
-                        marginLeft: 10,
-                        fontWeight: 'bold',
-                        fontSize: 18,
-                      }}>
-                      {title}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => {
-                        handleLike(id, user.id);
-                      }}>
-                      <FontAwesomeIcon
-                        icon={isLiked ? faHeartSolid : faHeartRegular}
-                        color={isLiked ? '#e74c3c' : '#95a5a6'}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                )}
-
-                {/* Page Content */}
-                <View style={{flex: 1, justifyContent: 'center', padding: 20}}>
-                  <Text
-                    style={{
-                      fontSize: 18,
-                      lineHeight: 28,
-                      textAlign: 'justify',
-                    }}>
-                    {pages[currentPageIndex]?.content || 'Không có nội dung.'}
-                  </Text>
-                </View>
-              </Animated.View>
-            </GestureDetector>
+    <View style={globalStyle.androidSafeArea}>
+      {isHeaderVisible && (
+        <View
+          style={{
+            height: 56,
+            width: '100%',
+            backgroundColor: '#fff',
+            position: 'absolute',
+            flexDirection: 'row',
+            alignItems: 'center',
+            zIndex: 10,
+            top: globalStyle.androidSafeArea.paddingTop,
+            boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+          }}>
+          <BackButton navigation={navigation} />
+          <View>
+            <Text
+              style={{
+                fontSize: 18,
+                color: '#000',
+                fontFamily: getFontFamily('Inter', '600'),
+                marginLeft: 10,
+              }}>
+              {title}
+            </Text>
           </View>
-        </TouchableWithoutFeedback>
-      </GestureHandlerRootView>
-    </SafeAreaView>
+          <TouchableOpacity onPress={handleLikePress} style={{marginLeft: 10}}>
+            <FontAwesomeIcon
+              icon={like ? faHeartSolid : faHeartRegular}
+              size={25}
+              color={like ? '#e74c3c' : '#95a5a6'}
+            />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <GestureDetector gesture={combinedGesture}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            paddingHorizontal: 20,
+          }}>
+          {loading ? (
+            <View>
+              <ActivityIndicator size="large" color="#007AFF" />
+            </View>
+          ) : (
+            <View>
+              <Text
+                style={{
+                  color: '#000',
+                  fontSize: 20,
+                  fontFamily: getFontFamily('Inter', '600'),
+                  marginBottom: 10,
+                }}>
+                {currentChapter?.title && currentPageIndex === 0
+                  ? currentChapter.title
+                  : ''}
+              </Text>
+              <Text
+                style={{
+                  color: '#000',
+                  fontSize: 18,
+                  fontFamily: getFontFamily('Inter', '400'),
+                }}>
+                {currentPages[currentPageIndex]?.content}
+              </Text>
+            </View>
+          )}
+        </View>
+      </GestureDetector>
+    </View>
   );
 };
 

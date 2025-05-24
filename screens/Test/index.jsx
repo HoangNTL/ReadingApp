@@ -1,81 +1,172 @@
-import {useState} from 'react';
-import {View, StyleSheet, Dimensions} from 'react-native';
+import React, {useState} from 'react';
+import {View, Dimensions, Text} from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {runOnJS} from 'react-native-reanimated';
-import globalStyle from '../../assets/styles/GlobalStyle';
-import BackButton from '../../components/BackButton';
-import {useNavigation} from '@react-navigation/native';
 
-const {width} = Dimensions.get('window');
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
-export default function TestScreen() {
-  const navigation = useNavigation();
-  // State to control header visibility
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+const TestScreen = () => {
+  const screens = [
+    'Screen A',
+    'Screen B',
+    'Screen C',
+    'Screen D',
+    'Screen E',
+    'Screen F',
+  ];
+  const [visibleScreens, setVisibleScreens] = useState({
+    left: null,
+    current: screens[0],
+    right: screens[1],
+  });
 
-  // Single tap with left/middle/right differentiation
-  const singleTap = Gesture.Tap()
-    .maxDuration(250)
-    .numberOfTaps(1)
-    .onStart(event => {
-      const leftThreshold = width * 0.3; // 30% = 36px
-      const rightThreshold = width * 0.7; // 70% = 84px
+  const currentIndex = useSharedValue(0);
+  const translateX = useSharedValue(0);
+  const startX = useSharedValue(0);
 
-      if (event.x < leftThreshold) {
-        console.log('Left tap! (x: ' + event.x + ')');
-      } else if (event.x >= rightThreshold) {
-        console.log('Right tap! (x: ' + event.x + ')');
+  const getVisibleScreens = index => {
+    const visible = {
+      left: index > 0 ? screens[index - 1] : null,
+      current: screens[index],
+      right: index < screens.length - 1 ? screens[index + 1] : null,
+    };
+    setVisibleScreens(visible);
+  };
+
+  const scrollToIndex = index => {
+    'worklet';
+    const newValue = -index * SCREEN_WIDTH;
+    if (index >= 0 && index < screens.length && translateX.value !== newValue) {
+      currentIndex.value = index;
+      translateX.value = withTiming(newValue, {duration: 700}, isFinished => {
+        if (isFinished) {
+          runOnJS(getVisibleScreens)(index);
+        }
+      });
+    }
+  };
+
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      startX.value = translateX.value;
+    })
+    .onUpdate(event => {
+      const nextX = startX.value + event.translationX;
+      const minX = -((screens.length - 1) * SCREEN_WIDTH);
+      translateX.value = Math.max(Math.min(nextX, 0), minX);
+    })
+    .onEnd(event => {
+      const threshold = SCREEN_WIDTH / 4;
+
+      if (
+        event.translationX < -threshold &&
+        currentIndex.value < screens.length - 1
+      ) {
+        scrollToIndex(currentIndex.value + 1);
+      } else if (event.translationX > threshold && currentIndex.value > 0) {
+        scrollToIndex(currentIndex.value - 1);
       } else {
-        console.log('Middle tap! (x: ' + event.x + ')');
-        runOnJS(setIsHeaderVisible)(!isHeaderVisible); // Run state update on JS thread
+        translateX.value = withTiming(
+          -SCREEN_WIDTH,
+          {duration: 2000},
+          finished => {
+            if (finished) {
+              console.log('Animation finished');
+            }
+          },
+        );
       }
     });
 
-  // Double tap
-  const doubleTap = Gesture.Tap()
-    .maxDuration(250)
-    .numberOfTaps(2)
-    .onStart(() => {
-      console.log('Double tap!');
-    });
+  // Tạo tap gesture riêng cho vùng bên trái (trang trước)
+  const leftTapGesture = Gesture.Tap().onEnd(() => {
+    if (currentIndex.value > 0) {
+      scrollToIndex(currentIndex.value - 1);
+    }
+  });
 
-  // Combine gestures, allowing simultaneous detection
-  const combinedGesture = Gesture.Simultaneous(doubleTap, singleTap);
+  // Tạo tap gesture riêng cho vùng bên phải (trang tiếp theo)
+  const rightTapGesture = Gesture.Tap().onEnd(() => {
+    if (currentIndex.value < screens.length - 1) {
+      scrollToIndex(currentIndex.value + 1);
+    }
+  });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{translateX: translateX.value}],
+  }));
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: '#FFF',
-        paddingTop: globalStyle.androidSafeArea.paddingTop,
-      }}>
-      {isHeaderVisible && (
-        <View style={styles.header}>
-          {/* <BackButton navigation={navigation} /> */}
-        </View>
-      )}
-      <GestureDetector gesture={combinedGesture}>
-        <View style={styles.content} />
-      </GestureDetector>
-    </View>
-  );
-}
+    <GestureDetector gesture={panGesture}>
+      <View style={{flex: 1}}>
+        {/* Vùng tap bên trái */}
+        <GestureDetector gesture={leftTapGesture}>
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: SCREEN_WIDTH / 2,
+              zIndex: 10,
+            }}
+          />
+        </GestureDetector>
 
-const styles = StyleSheet.create({
-  header: {
-    height: 56,
-    width: '100%',
-    backgroundColor: '#fff',
-    position: 'absolute',
-    zIndex: 10,
-    top: globalStyle.androidSafeArea.paddingTop,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-  },
-  content: {
-    // height: '100%',
-    // width: '100%',
-    flex: 1,
-    // backgroundColor: '#b58df1',
-  },
-});
+        {/* Vùng tap bên phải */}
+        <GestureDetector gesture={rightTapGesture}>
+          <View
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: SCREEN_WIDTH / 2,
+              zIndex: 10,
+            }}
+          />
+        </GestureDetector>
+
+        <Animated.View
+          style={[
+            {
+              flexDirection: 'row',
+              width: SCREEN_WIDTH * screens.length,
+              height: '100%',
+            },
+            animatedStyle,
+          ]}>
+          {screens.map((screen, index) => (
+            <View
+              key={index}
+              style={{
+                width: SCREEN_WIDTH,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: '#f0f0f0',
+                borderLeftWidth: 1,
+                borderRightWidth: 1,
+                borderColor: '#000',
+              }}>
+              <Text style={{fontSize: 24}}>{screen}</Text>
+            </View>
+          ))}
+        </Animated.View>
+
+        <View style={{position: 'absolute', bottom: 30, padding: 20}}>
+          <Text style={{fontWeight: 'bold'}}>Visible Screens:</Text>
+          <Text>Left: {visibleScreens.left ?? 'None'}</Text>
+          <Text>Current: {visibleScreens.current}</Text>
+          <Text>Right: {visibleScreens.right ?? 'None'}</Text>
+        </View>
+      </View>
+    </GestureDetector>
+  );
+};
+
+export default TestScreen;
