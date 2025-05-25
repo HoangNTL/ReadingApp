@@ -34,10 +34,10 @@ export const BookItem = ({book}) => {
             <BookStatItem icon={faEye} value={book?.views_count} />
 
             {/* Likes */}
-            <BookStatItem icon={faList} value={book?.total_likes} />
+            <BookStatItem icon={faHeart} value={book?.total_likes} />
 
             {/* Chapters */}
-            <BookStatItem icon={faHeart} value={book?.total_chapters} />
+            <BookStatItem icon={faList} value={book?.total_chapters} />
           </View>
 
           {/* Genre */}

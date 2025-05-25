@@ -1,36 +1,48 @@
 import React from 'react';
-import {Text, TouchableOpacity} from 'react-native';
+import {Text, TouchableOpacity, ActivityIndicator} from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import {getFontFamily} from '../../assets/fonts/helper';
+import {styles} from './style';
 
-export const IconButton = ({variant = 'solid', icon, label, onPress}) => {
+export const IconButton = ({
+  variant = 'solid',
+  icon,
+  label,
+  onPress,
+  disabled = false,
+  loading = false,
+}) => {
   const isOutline = variant === 'outline';
 
   return (
     <TouchableOpacity
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        backgroundColor: isOutline ? 'transparent' : '#000',
-        borderWidth: isOutline ? 1.5 : 0,
-        borderRadius: 24,
-        paddingHorizontal: 48,
-        paddingVertical: 12,
-      }}
-      onPress={onPress}>
-      <FontAwesomeIcon
-        icon={icon}
-        size={18}
-        color={isOutline ? '#000' : '#fff'}
-        style={{marginRight: 5}}
-      />
+      style={[
+        styles.button,
+        isOutline ? styles.outlineButton : styles.solidButton,
+        disabled || loading ? styles.disabled : null,
+      ]}
+      onPress={disabled || loading ? null : onPress}
+      activeOpacity={disabled || loading ? 1 : 0.7}
+      disabled={disabled || loading}>
+      {loading ? (
+        <ActivityIndicator
+          size="small"
+          color={isOutline ? '#000' : '#FFF'}
+          style={styles.iconMargin}
+        />
+      ) : (
+        <FontAwesomeIcon
+          icon={icon}
+          size={18}
+          color={isOutline ? '#000' : '#FFF'}
+          style={styles.iconMargin}
+        />
+      )}
+
       <Text
-        style={{
-          color: isOutline ? '#000' : '#fff',
-          fontSize: 16,
-          fontFamily: getFontFamily('Inter', '600'),
-        }}>
+        style={[
+          styles.label,
+          isOutline ? styles.outlineLabel : styles.solidLabel,
+        ]}>
         {label}
       </Text>
     </TouchableOpacity>

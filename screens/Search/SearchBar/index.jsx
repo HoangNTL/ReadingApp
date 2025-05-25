@@ -2,46 +2,28 @@ import React, {useState} from 'react';
 import {View, TextInput, Keyboard, Alert, TouchableOpacity} from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faMagnifyingGlass, faTimes} from '@fortawesome/free-solid-svg-icons';
-import {getBookByKeyword, getBooks} from '../../../api/bookApi';
 import {styles} from './style';
-import {useLoading} from '../../../hooks/useLoading';
+import {useDispatch, useSelector} from 'react-redux';
+import {searchBooks, fetchBooks} from '../../../redux/slices/bookSlice';
 
-export const SearchBar = ({setBooks}) => {
+export const SearchBar = () => {
   const [keyword, setKeyword] = useState('');
-  const {setLoading} = useLoading();
+  const dispatch = useDispatch();
+  const loading = useSelector(state => state.books.loading);
 
-  const handleSearch = async () => {
+  const handleSearch = () => {
     if (!keyword.trim()) {
       Alert.alert('Error', 'Please enter a search keyword.');
       return;
     }
-
-    setLoading(true);
-    try {
-      const response = await getBookByKeyword(keyword);
-      setBooks(response || []);
-    } catch (error) {
-      console.error('Search error:', error);
-      Alert.alert('Error', 'Failed to search books. Please try again.');
-    } finally {
-      setLoading(false);
-      Keyboard.dismiss();
-    }
+    dispatch(searchBooks(keyword));
+    Keyboard.dismiss();
   };
 
-  const handleClear = async () => {
+  const handleClear = () => {
     setKeyword('');
-    setLoading(true);
-    try {
-      const data = await getBooks();
-      setBooks(data || []);
-    } catch (error) {
-      console.error('Error fetching books:', error);
-      Alert.alert('Error', 'Failed to load books. Please try again.');
-    } finally {
-      setLoading(false);
-      Keyboard.dismiss();
-    }
+    dispatch(fetchBooks());
+    Keyboard.dismiss();
   };
 
   return (
@@ -59,9 +41,13 @@ export const SearchBar = ({setBooks}) => {
         placeholder="Search for books..."
         returnKeyType="search"
         onSubmitEditing={handleSearch}
+        editable={!loading}
       />
       {keyword.length > 0 && (
-        <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
+        <TouchableOpacity
+          onPress={handleClear}
+          style={styles.clearButton}
+          disabled={loading}>
           <FontAwesomeIcon icon={faTimes} size={18} color="#000" />
         </TouchableOpacity>
       )}

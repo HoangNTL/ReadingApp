@@ -1,5 +1,5 @@
-import React, {useContext, useEffect, useState} from 'react';
-import {View, Text, Image, ActivityIndicator} from 'react-native';
+import React, {useEffect} from 'react';
+import {View, Text, Image} from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import globalStyle from '../../assets/styles/GlobalStyle';
 import {
@@ -9,54 +9,45 @@ import {
   faBookOpen,
   faPlus,
 } from '@fortawesome/free-solid-svg-icons';
-import {getBookById, saveBook, getSaveStatus} from '../../api/bookApi';
 import {Alert} from 'react-native';
 import {BookStatItem} from '../../components/BookStatItem';
 import {IconButton} from '../../components/IconButton';
 import {GenreList} from '../../components/GenreList';
 import {Header} from './Header';
 import {styles} from './style';
-import {useLoading} from '../../hooks/useLoading';
-import {UserContext} from '../../contexts/UserContext';
+import {useSelector, useDispatch} from 'react-redux';
+import {LoadingIndicator} from '../../components/LoadingIndicator';
+import {
+  fetchBookDetail,
+  toggleSaveBook,
+  clearBookDetail,
+} from '../../redux/slices/bookDetailSlice';
 
 const BookDetailScreen = ({navigation}) => {
   const route = useRoute();
   const {bookId} = route.params;
-  const [book, setBook] = useState(null);
-  const {loading, setLoading} = useLoading();
-  const {user} = useContext(UserContext);
-  const [save, setSave] = useState(false);
+
+  const dispatch = useDispatch();
+  const user = useSelector(state => state.user.user);
+  const {book, isSaved, loading, saving, error} = useSelector(
+    state => state.bookDetail,
+  );
 
   useEffect(() => {
-    const fetchBookDetails = async () => {
-      setLoading(true);
-      try {
-        const data = await getBookById(bookId);
-        if (!data) {
-          throw new Error('Book not found');
-        }
-        setBook(data);
-      } catch (error) {
-        console.error('Error fetching book details:', error);
-        Alert.alert('Error', 'Unable to load book details. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (user?.id && bookId) {
+      dispatch(fetchBookDetail({bookId, userId: user.id}));
+    }
 
-    const checkSaveStatus = async () => {
-      try {
-        const status = await getSaveStatus(bookId, user.id);
-        setSave(status.is_saved);
-      } catch (error) {
-        console.error('Error checking save status:', error);
-        Alert.alert('Error', 'Failed to check save status. Please try again.');
-      }
+    return () => {
+      dispatch(clearBookDetail());
     };
+  }, [bookId, user?.id, dispatch]);
 
-    fetchBookDetails();
-    checkSaveStatus();
-  }, [bookId, setLoading, setSave, user.id]);
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Error', error);
+    }
+  }, [error]);
 
   const handleRead = () => {
     if (!book) {
@@ -66,23 +57,18 @@ const BookDetailScreen = ({navigation}) => {
     navigation.navigate('Reading', {id: bookId, title: book.title});
   };
 
-  const handleSave = async () => {
-    try {
-      const savedBooks = await saveBook(bookId, user.id);
-      console.log('Book saved successfully:', savedBooks);
-      setSave(savedBooks.is_saved);
-    } catch (error) {
-      console.error('Error saving book:', error);
-      Alert.alert('Error', 'Failed to save the book. Please try again.');
+  const handleSave = () => {
+    if (!user?.id) {
+      Alert.alert('Error', 'You must be logged in to save books.');
+      return;
     }
+    dispatch(toggleSaveBook({bookId, userId: user.id}));
   };
 
   return (
     <View style={globalStyle.androidSafeArea}>
       {loading || !book ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-        </View>
+        <LoadingIndicator />
       ) : (
         <>
           <Header title={book?.title} />
@@ -149,8 +135,9 @@ const BookDetailScreen = ({navigation}) => {
                 <IconButton
                   variant="outline"
                   icon={faPlus}
-                  label={save ? 'Saved' : 'Save'}
+                  label={isSaved ? 'Saved' : 'Save'}
                   onPress={handleSave}
+                  loading={saving}
                 />
               </View>
             </View>

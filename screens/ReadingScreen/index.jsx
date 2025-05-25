@@ -1,11 +1,5 @@
-import React, {useEffect, useState, useContext} from 'react';
-import {
-  View,
-  Text,
-  Dimensions,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, Dimensions, TouchableOpacity} from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import {GestureDetector, Gesture} from 'react-native-gesture-handler';
 import {runOnJS} from 'react-native-reanimated';
@@ -22,28 +16,30 @@ import {
   getLikeStatus,
 } from '../../api/bookApi';
 import globalStyle from '../../assets/styles/GlobalStyle';
-import {UserContext} from '../../contexts/UserContext';
 import {BackButton} from '../../components/BackButton';
 import {getFontFamily} from '../../assets/fonts/helper';
-import {useLoading} from '../../hooks/useLoading';
+import {LoadingIndicator} from '../../components/LoadingIndicator';
+import {useDispatch, useSelector} from 'react-redux';
+import {setLoading} from '../../redux/slices/loadingSlice';
 
 const {width} = Dimensions.get('window');
 
 const ReadingScreen = ({navigation}) => {
   const route = useRoute();
   const {id, title} = route.params || {}; // bookId and title
-  const {user} = useContext(UserContext);
+  const user = useSelector(state => state.user.user);
 
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [currentChapter, setCurrentChapter] = useState(null);
   const [currentPages, setCurrentPages] = useState([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const {loading, setLoading} = useLoading();
+  const loading = useSelector(state => state.loading.global);
+  const dispatch = useDispatch();
   const [like, setLike] = useState(false);
 
   const fetchInitialChapter = React.useCallback(async () => {
     try {
-      setLoading(true);
+      dispatch(setLoading(true));
       const chapter = await getFirstChapter(id);
       const pages = await getPagesByChapterId(chapter.id);
       setCurrentChapter(chapter);
@@ -52,9 +48,9 @@ const ReadingScreen = ({navigation}) => {
     } catch (error) {
       console.error('Error loading initial chapter:', error);
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
-  }, [id, setLoading]);
+  }, [id, dispatch]);
 
   const fetchLikeStatus = React.useCallback(async () => {
     try {
@@ -74,7 +70,7 @@ const ReadingScreen = ({navigation}) => {
 
   const changeChapter = async chapter => {
     try {
-      setLoading(true);
+      dispatch(setLoading(true));
       const pages = await getPagesByChapterId(chapter.id);
       setCurrentChapter(chapter);
       setCurrentPages(pages);
@@ -82,7 +78,7 @@ const ReadingScreen = ({navigation}) => {
     } catch (error) {
       console.error('Error changing chapter:', error);
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
   };
 
@@ -91,7 +87,7 @@ const ReadingScreen = ({navigation}) => {
 
     if (isLastPage) {
       try {
-        setLoading(true);
+        dispatch(setLoading(true));
         const nextChapter = await getNextChapter(
           id,
           currentChapter?.chapter_order,
@@ -104,7 +100,7 @@ const ReadingScreen = ({navigation}) => {
       } catch (error) {
         console.error('Error going to next chapter:', error);
       } finally {
-        setLoading(false);
+        dispatch(setLoading(false));
       }
     } else {
       setCurrentPageIndex(currentPageIndex + 1);
@@ -116,7 +112,7 @@ const ReadingScreen = ({navigation}) => {
 
     if (isFirstPage) {
       try {
-        setLoading(true);
+        dispatch(setLoading(true));
         const previousChapter = await getPreviousChapter(
           id,
           currentChapter?.chapter_order,
@@ -132,7 +128,7 @@ const ReadingScreen = ({navigation}) => {
       } catch (error) {
         console.error('Error going to previous chapter:', error);
       } finally {
-        setLoading(false);
+        dispatch(setLoading(false));
       }
     } else {
       setCurrentPageIndex(currentPageIndex - 1);
@@ -146,6 +142,13 @@ const ReadingScreen = ({navigation}) => {
     } catch (error) {
       console.error('Error liking book:', error);
     }
+  };
+
+  const toggleHeader = () => {
+    setIsHeaderVisible(prev => {
+      const next = !prev;
+      return next;
+    });
   };
 
   // TAP gesture - Xử lý tap trái/phải giữa
@@ -164,7 +167,8 @@ const ReadingScreen = ({navigation}) => {
         runOnJS(goToNextPage)();
       } else {
         // Tap giữa => ẩn/hiện header
-        runOnJS(setIsHeaderVisible)(prev => !prev);
+        // runOnJS(setIsHeaderVisible)(prev => !prev);
+        runOnJS(toggleHeader)();
       }
     });
 
@@ -190,7 +194,7 @@ const ReadingScreen = ({navigation}) => {
           style={{
             height: 56,
             width: '100%',
-            backgroundColor: '#fff',
+            backgroundColor: '#FFF',
             position: 'absolute',
             flexDirection: 'row',
             alignItems: 'center',
@@ -228,9 +232,7 @@ const ReadingScreen = ({navigation}) => {
             paddingHorizontal: 20,
           }}>
           {loading ? (
-            <View>
-              <ActivityIndicator size="large" color="#007AFF" />
-            </View>
+            <LoadingIndicator />
           ) : (
             <View>
               <Text

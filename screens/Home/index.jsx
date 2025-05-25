@@ -1,38 +1,30 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View, StyleSheet, Alert, ActivityIndicator} from 'react-native';
 import globalStyle from '../../assets/styles/GlobalStyle';
-import {getTopViewedBooks, getLatestBooks} from '../../api/bookApi';
 import {Header} from './Header';
 import {BookList} from './BookList';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faFire} from '@fortawesome/free-solid-svg-icons';
-import {useLoading} from '../../hooks/useLoading';
+import {useSelector, useDispatch} from 'react-redux';
+import {
+  fetchTopViewedBooks,
+  fetchLatestBooks,
+} from '../../redux/slices/bookSlice';
 
 const HomeScreen = ({navigation}) => {
-  const [topViewedBooks, setTopViewedBooks] = useState([]);
-  const [latestBooks, setLatestBooks] = useState([]);
-  const {loading, setLoading} = useLoading();
+  const dispatch = useDispatch();
+  const {topViewed, latest, loading, error} = useSelector(state => state.books);
 
   useEffect(() => {
-    const fetchBooks = async () => {
-      setLoading(true);
-      try {
-        const [topBooks, newBooks] = await Promise.all([
-          getTopViewedBooks(),
-          getLatestBooks(),
-        ]);
-        setTopViewedBooks(topBooks);
-        setLatestBooks(newBooks);
-      } catch (error) {
-        console.error('Error fetching books:', error);
-        Alert.alert('Error', 'Failed to load books. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    dispatch(fetchTopViewedBooks());
+    dispatch(fetchLatestBooks());
+  }, [dispatch]);
 
-    fetchBooks();
-  }, [setLoading]);
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Error', error);
+    }
+  }, [error]);
 
   return (
     <View style={globalStyle.androidSafeArea}>
@@ -48,12 +40,12 @@ const HomeScreen = ({navigation}) => {
           <>
             <BookList
               label="Hot"
-              books={topViewedBooks}
+              books={topViewed}
               icon={<FontAwesomeIcon icon={faFire} size={20} color="#d35400" />}
             />
 
             {/* New Books */}
-            <BookList label="New" books={latestBooks} />
+            <BookList label="New" books={latest} />
           </>
         )}
         {/* Hot Books */}

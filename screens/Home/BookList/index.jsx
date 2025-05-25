@@ -37,9 +37,6 @@ export const BookList = ({label, books, icon}) => {
               </Text>
             </TouchableOpacity>
           )}
-          // contentContainerStyle={{
-          //   paddingHorizontal: 16
-          // }}
           showsHorizontalScrollIndicator={false}
         />
       </View>

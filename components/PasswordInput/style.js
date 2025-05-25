@@ -8,11 +8,18 @@ export const styles = StyleSheet.create({
     marginBottom: 4,
     fontFamily: getFontFamily('Inter', '400'),
   },
-  input: {
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#000',
-    padding: 12,
-    borderRadius: 4,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  input: {
+    flex: 1,
     fontFamily: getFontFamily('Inter', '400'),
   },
+
 });

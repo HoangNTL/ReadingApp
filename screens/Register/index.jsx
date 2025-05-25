@@ -1,12 +1,12 @@
-import React, {useState, useContext} from 'react';
+import React, {useState} from 'react';
 import {Text, View, Alert} from 'react-native';
-import {UserContext} from '../../contexts/UserContext';
 import {PasswordInput} from '../../components/PasswordInput';
 import {ButtonCustom} from '../../components/ButtonCustom';
 import {TextInputCustom} from '../../components/TextInputCustom';
 import {styles} from './style';
 import {BackButton} from '../../components/BackButton';
-import {useLoading} from '../../hooks/useLoading';
+import {useDispatch, useSelector} from 'react-redux';
+import {register} from '../../redux/slices/userSlice';
 
 const RegisterScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
@@ -14,8 +14,10 @@ const RegisterScreen = ({navigation}) => {
   const [password, setPassword] = useState('');
   //   const [dob, setDob] = useState(new Date());
 
-  const {register} = useContext(UserContext);
-  const {loading, setLoading} = useLoading();
+  const isValidEmail = value => /\S+@\S+\.\S+/.test(value);
+
+  const dispatch = useDispatch();
+  const loading = useSelector(state => state.user.loading);
 
   const handleSubmit = async () => {
     if (!username || !email || !password) {
@@ -23,19 +25,24 @@ const RegisterScreen = ({navigation}) => {
       return;
     }
 
-    setLoading(true);
+    if (!isValidEmail(email)) {
+      Alert.alert('Please enter a valid email address.');
+      return;
+    }
+
     try {
-      const success = await register(username, email, password);
-      if (!success) {
-        Alert.alert('Registration failed. Please check your credentials.');
-        return;
+      const result = await dispatch(
+        register({username, email, password}),
+      ).unwrap();
+      if (result) {
+        navigation.navigate('App');
       }
-      navigation.navigate('App');
     } catch (error) {
-      Alert.alert('Error', 'An error occurred during registration.');
+      Alert.alert(
+        'Registration failed',
+        error?.message || 'An error occurred.',
+      );
       console.error('Registration error:', error);
-    } finally {
-      setLoading(false);
     }
   };
 

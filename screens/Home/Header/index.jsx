@@ -1,13 +1,14 @@
-import React, {useState, useContext} from 'react';
+import React, {useState} from 'react';
 import {Text, View, TouchableOpacity, Alert} from 'react-native';
-import {UserContext} from '../../../contexts/UserContext';
 import {useNavigation} from '@react-navigation/native';
 import {styles} from './style';
+import {logout} from '../../../redux/slices/userSlice';
+import {useSelector} from 'react-redux';
 
 export const Header = () => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const user = useSelector(state => state.user.user);
 
-  const {user, logout} = useContext(UserContext);
   const navigation = useNavigation();
 
   return (
