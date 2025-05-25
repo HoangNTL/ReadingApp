@@ -52,6 +52,7 @@ export const getFirstChapter = async bookId => {
 
 export const getPagesByChapterId = async chapterId => {
   try {
+    console.log('Fetching pages for chapter ID:', chapterId);
     const response = await api.get(`books/chapters/${chapterId}/pages`);
     return response.data;
   } catch (error) {

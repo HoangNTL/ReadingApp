@@ -18,7 +18,10 @@ const TestScreen = () => {
     'Screen D',
     'Screen E',
     'Screen F',
+    'Screen G',
+    'Screen H',
   ];
+
   const [visibleScreens, setVisibleScreens] = useState({
     left: null,
     current: screens[0],
@@ -28,6 +31,7 @@ const TestScreen = () => {
   const currentIndex = useSharedValue(0);
   const translateX = useSharedValue(0);
   const startX = useSharedValue(0);
+  const isTransitioning = useSharedValue(false);
 
   const getVisibleScreens = index => {
     const visible = {
@@ -40,27 +44,40 @@ const TestScreen = () => {
 
   const scrollToIndex = index => {
     'worklet';
-    const newValue = -index * SCREEN_WIDTH;
-    if (index >= 0 && index < screens.length && translateX.value !== newValue) {
+    if (
+      index >= 0 &&
+      index < screens.length &&
+      !isTransitioning.value &&
+      translateX.value !== -index * SCREEN_WIDTH
+    ) {
+      isTransitioning.value = true;
       currentIndex.value = index;
-      translateX.value = withTiming(newValue, {duration: 700}, isFinished => {
-        if (isFinished) {
-          runOnJS(getVisibleScreens)(index);
-        }
-      });
+      translateX.value = withTiming(
+        -index * SCREEN_WIDTH,
+        {duration: 700},
+        isFinished => {
+          if (isFinished) {
+            runOnJS(getVisibleScreens)(index);
+            isTransitioning.value = false;
+          }
+        },
+      );
     }
   };
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
+      if (isTransitioning.value) return;
       startX.value = translateX.value;
     })
     .onUpdate(event => {
+      if (isTransitioning.value) return;
       const nextX = startX.value + event.translationX;
       const minX = -((screens.length - 1) * SCREEN_WIDTH);
       translateX.value = Math.max(Math.min(nextX, 0), minX);
     })
     .onEnd(event => {
+      if (isTransitioning.value) return;
       const threshold = SCREEN_WIDTH / 4;
 
       if (
@@ -71,31 +88,40 @@ const TestScreen = () => {
       } else if (event.translationX > threshold && currentIndex.value > 0) {
         scrollToIndex(currentIndex.value - 1);
       } else {
-        translateX.value = withTiming(
-          -SCREEN_WIDTH,
-          {duration: 2000},
-          finished => {
-            if (finished) {
-              console.log('Animation finished');
-            }
-          },
-        );
+        translateX.value = withTiming(-currentIndex.value * SCREEN_WIDTH, {
+          duration: 700,
+        });
       }
     });
 
-  // Tạo tap gesture riêng cho vùng bên trái (trang trước)
-  const leftTapGesture = Gesture.Tap().onEnd(() => {
-    if (currentIndex.value > 0) {
-      scrollToIndex(currentIndex.value - 1);
-    }
-  });
+  // Tap bên trái 30% màn hình, chỉ nhận tap nhanh, 1 lần
+  const leftTapGesture = Gesture.Tap()
+    .maxDuration(250)
+    .numberOfTaps(1)
+    .onStart(() => {
+      if (isTransitioning.value) return;
+      if (currentIndex.value > 0) {
+        scrollToIndex(currentIndex.value - 1);
+      }
+    });
 
-  // Tạo tap gesture riêng cho vùng bên phải (trang tiếp theo)
-  const rightTapGesture = Gesture.Tap().onEnd(() => {
-    if (currentIndex.value < screens.length - 1) {
-      scrollToIndex(currentIndex.value + 1);
-    }
-  });
+  // Tap bên phải 30% màn hình, chỉ nhận tap nhanh, 1 lần
+  const rightTapGesture = Gesture.Tap()
+    .maxDuration(250)
+    .numberOfTaps(1)
+    .onStart(() => {
+      if (isTransitioning.value) return;
+      if (currentIndex.value < screens.length - 1) {
+        scrollToIndex(currentIndex.value + 1);
+      }
+    });
+
+  const middleTapGesture = Gesture.Tap()
+    .maxDuration(250)
+    .numberOfTaps(1)
+    .onStart(() => {
+      console.log('Middle tapped');
+    });
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{translateX: translateX.value}],
@@ -104,7 +130,7 @@ const TestScreen = () => {
   return (
     <GestureDetector gesture={panGesture}>
       <View style={{flex: 1}}>
-        {/* Vùng tap bên trái */}
+        {/* Vùng tap bên trái (30% màn hình) */}
         <GestureDetector gesture={leftTapGesture}>
           <View
             style={{
@@ -112,13 +138,27 @@ const TestScreen = () => {
               left: 0,
               top: 0,
               bottom: 0,
-              width: SCREEN_WIDTH / 2,
+              width: SCREEN_WIDTH * 0.3,
               zIndex: 10,
             }}
           />
         </GestureDetector>
 
-        {/* Vùng tap bên phải */}
+        {/* Vùng tap bên giữa (40% màn hình) */}
+        <GestureDetector gesture={middleTapGesture}>
+          <View
+            style={{
+              position: 'absolute',
+              left: SCREEN_WIDTH * 0.3,
+              top: 0,
+              bottom: 0,
+              width: SCREEN_WIDTH * 0.4,
+              zIndex: 10,
+            }}
+          />
+        </GestureDetector>
+
+        {/* Vùng tap bên phải (30% màn hình) */}
         <GestureDetector gesture={rightTapGesture}>
           <View
             style={{
@@ -126,7 +166,7 @@ const TestScreen = () => {
               right: 0,
               top: 0,
               bottom: 0,
-              width: SCREEN_WIDTH / 2,
+              width: SCREEN_WIDTH * 0.3,
               zIndex: 10,
             }}
           />

@@ -54,7 +54,11 @@ const BookDetailScreen = ({navigation}) => {
       Alert.alert('Error', 'Book details are not loaded yet.');
       return;
     }
-    navigation.navigate('Reading', {id: bookId, title: book.title});
+    navigation.navigate('Reading', {
+      id: bookId,
+      title: book.title,
+      total_chapters: book.total_chapters,
+    });
   };
 
   const handleSave = () => {

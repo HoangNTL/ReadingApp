@@ -20,7 +20,7 @@ const {width} = Dimensions.get('window');
 
 const ReadingScreen = ({navigation}) => {
   const route = useRoute();
-  const {id, title} = route.params || {}; // bookId and title
+  const {id, title, total_chapters} = route.params || {}; // bookId, title, total_chapters
   const user = useSelector(state => state.user.user);
 
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -40,6 +40,12 @@ const ReadingScreen = ({navigation}) => {
 
   const goToNextPage = () => {
     const isLastPage = currentPageIndex === currentPages.length - 1;
+    const isLastChapter = currentChapter?.chapter_order === total_chapters;
+
+    if (isLastChapter && isLastPage) {
+      return;
+    }
+
     if (isLastPage) {
       dispatch(
         fetchNextChapter({
@@ -54,6 +60,12 @@ const ReadingScreen = ({navigation}) => {
 
   const goToPreviousPage = () => {
     const isFirstPage = currentPageIndex === 0;
+    const isFirstChapter = currentChapter?.chapter_order === 1;
+
+    if (isFirstChapter && isFirstPage) {
+      return;
+    }
+
     if (isFirstPage) {
       dispatch(
         fetchPreviousChapter({
@@ -116,11 +128,13 @@ const ReadingScreen = ({navigation}) => {
             <LoadingIndicator />
           ) : (
             <View>
-              <Text style={styles.chapterTitle}>
-                {currentChapter?.title && currentPageIndex === 0
-                  ? currentChapter.title
-                  : ''}
-              </Text>
+              {currentChapter?.title && currentPageIndex === 0 && (
+                <Text style={styles.chapterTitle}>
+                  Chapter {currentChapter?.chapter_order} -{' '}
+                  {currentChapter.title}
+                </Text>
+              )}
+
               <Text style={styles.pageContent}>
                 {currentPages[currentPageIndex]?.content}
               </Text>
