@@ -1,8 +1,9 @@
 import React from 'react';
 import {Text, View, FlatList} from 'react-native';
 import {styles} from './style';
+import PropTypes from 'prop-types';
 
-export const GenreList = ({book}) => {
+const GenreList = ({book}) => {
   return (
     <FlatList
       horizontal={true}
@@ -16,3 +17,9 @@ export const GenreList = ({book}) => {
     />
   );
 };
+
+GenreList.propTypes = {
+  book: PropTypes.object.isRequired,
+};
+
+export default GenreList;

@@ -3,8 +3,9 @@ import {Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {styles} from './style';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
+import PropTypes from 'prop-types';
 
-export const PasswordInput = ({label, value, onChangeText, placeholder}) => {
+const PasswordInput = props => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const togglePasswordVisibility = () => {
@@ -13,13 +14,13 @@ export const PasswordInput = ({label, value, onChangeText, placeholder}) => {
 
   return (
     <>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.label}>{props.label}</Text>
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
+          value={props.value}
+          onChangeText={props.onChangeText}
+          placeholder={props.placeholder}
           secureTextEntry={!isPasswordVisible}
         />
         <TouchableOpacity onPress={togglePasswordVisibility}>
@@ -34,3 +35,12 @@ export const PasswordInput = ({label, value, onChangeText, placeholder}) => {
     </>
   );
 };
+
+PasswordInput.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  onChangeText: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+};
+
+export default PasswordInput;

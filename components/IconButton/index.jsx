@@ -2,8 +2,9 @@ import React from 'react';
 import {Text, TouchableOpacity, ActivityIndicator} from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {styles} from './style';
+import PropTypes from 'prop-types';
 
-export const IconButton = ({
+const IconButton = ({
   variant = 'solid',
   icon,
   label,
@@ -48,3 +49,14 @@ export const IconButton = ({
     </TouchableOpacity>
   );
 };
+
+IconButton.defaultProps = {
+  variant: PropTypes.string.isRequired,
+  icon: PropTypes.object.isRequired,
+  label: PropTypes.string.isRequired,
+  onPress: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+  loading: PropTypes.bool,
+};
+
+export default IconButton;

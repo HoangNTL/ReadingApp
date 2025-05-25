@@ -1,20 +1,30 @@
 import React from 'react';
 import {Text, TextInput, View} from 'react-native';
 import {styles} from './style';
+import PropTypes from 'prop-types';
 
-export const TextInputCustom = ({label, value, onChangeText, placeholder}) => {
+const TextInputCustom = props => {
   return (
     <>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.label}>{props.label}</Text>
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
+          value={props.value}
+          onChangeText={props.onChangeText}
+          placeholder={props.placeholder}
           autoCapitalize="none"
         />
       </View>
     </>
   );
 };
+
+TextInputCustom.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  onChangeText: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+};
+
+export default TextInputCustom;

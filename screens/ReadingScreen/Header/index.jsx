@@ -3,7 +3,7 @@ import {View, Text, TouchableOpacity} from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faHeart as faHeartSolid} from '@fortawesome/free-solid-svg-icons';
 import {faHeart as faHeartRegular} from '@fortawesome/free-regular-svg-icons';
-import {BackButton} from '../../../components/BackButton';
+import BackButton from '../../../components/BackButton';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   fetchLikeStatus,

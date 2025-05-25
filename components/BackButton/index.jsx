@@ -4,7 +4,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faArrowLeft} from '@fortawesome/free-solid-svg-icons';
 import {useNavigation} from '@react-navigation/native';
 
-export const BackButton = () => {
+const BackButton = () => {
   const navigation = useNavigation();
   return (
     <TouchableOpacity
@@ -20,3 +20,5 @@ const styles = StyleSheet.create({
     padding: 10,
   },
 });
+
+export default BackButton;

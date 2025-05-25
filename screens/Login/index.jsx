@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 import {View, Text, TouchableOpacity, Alert} from 'react-native';
-import {TextInputCustom} from '../../components/TextInputCustom';
-import {PasswordInput} from '../../components/PasswordInput';
-import {ButtonCustom} from '../../components/ButtonCustom';
+import TextInputCustom from '../../components/TextInputCustom';
+import PasswordInput from '../../components/PasswordInput';
+import ButtonCustom from '../../components/ButtonCustom';
 import {styles} from './style';
 import {useSelector, useDispatch} from 'react-redux';
 import {login} from '../../redux/slices/userSlice';

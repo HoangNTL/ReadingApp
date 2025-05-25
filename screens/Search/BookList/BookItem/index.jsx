@@ -4,8 +4,8 @@ import {faHeart} from '@fortawesome/free-solid-svg-icons';
 import {faEye} from '@fortawesome/free-solid-svg-icons';
 import {faList} from '@fortawesome/free-solid-svg-icons';
 import {useNavigation} from '@react-navigation/native';
-import {GenreList} from '../../../../components/GenreList';
-import {BookStatItem} from '../../../../components/BookStatItem';
+import GenreList from '../../../../components/GenreList';
+import BookStatItem from '../../../../components/BookStatItem';
 import {styles} from './style';
 
 export const BookItem = ({book}) => {

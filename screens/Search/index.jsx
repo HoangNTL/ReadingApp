@@ -5,7 +5,7 @@ import {SearchBar} from './SearchBar';
 import {BookList} from './BookList';
 import {useDispatch, useSelector} from 'react-redux';
 import {fetchBooks} from '../../redux/slices/bookSlice';
-import {LoadingIndicator} from '../../components/LoadingIndicator';
+import LoadingIndicator from '../../components/LoadingIndicator';
 
 const SearchScreen = ({navigation}) => {
   const dispatch = useDispatch();

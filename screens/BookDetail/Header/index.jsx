@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text} from 'react-native';
-import {BackButton} from '../../../components/BackButton';
+import BackButton from '../../../components/BackButton';
 import {styles} from './style';
 
 export const Header = ({title}) => {

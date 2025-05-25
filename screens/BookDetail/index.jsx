@@ -10,13 +10,13 @@ import {
   faPlus,
 } from '@fortawesome/free-solid-svg-icons';
 import {Alert} from 'react-native';
-import {BookStatItem} from '../../components/BookStatItem';
-import {IconButton} from '../../components/IconButton';
-import {GenreList} from '../../components/GenreList';
+import BookStatItem from '../../components/BookStatItem';
+import IconButton from '../../components/IconButton';
+import GenreList from '../../components/GenreList';
 import {Header} from './Header';
 import {styles} from './style';
 import {useSelector, useDispatch} from 'react-redux';
-import {LoadingIndicator} from '../../components/LoadingIndicator';
+import LoadingIndicator from '../../components/LoadingIndicator';
 import {
   fetchBookDetail,
   toggleSaveBook,

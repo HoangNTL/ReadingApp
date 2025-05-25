@@ -4,7 +4,7 @@ import {useRoute} from '@react-navigation/native';
 import {GestureDetector, Gesture} from 'react-native-gesture-handler';
 import {runOnJS} from 'react-native-reanimated';
 import globalStyle from '../../assets/styles/GlobalStyle';
-import {LoadingIndicator} from '../../components/LoadingIndicator';
+import LoadingIndicator from '../../components/LoadingIndicator';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {

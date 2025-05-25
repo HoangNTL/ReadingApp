@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import {Text, View, Alert} from 'react-native';
-import {PasswordInput} from '../../components/PasswordInput';
-import {ButtonCustom} from '../../components/ButtonCustom';
-import {TextInputCustom} from '../../components/TextInputCustom';
+import PasswordInput from '../../components/PasswordInput';
+import ButtonCustom from '../../components/ButtonCustom';
+import TextInputCustom from '../../components/TextInputCustom';
 import {styles} from './style';
-import {BackButton} from '../../components/BackButton';
+import BackButton from '../../components/BackButton';
 import {useDispatch, useSelector} from 'react-redux';
 import {register} from '../../redux/slices/userSlice';
 

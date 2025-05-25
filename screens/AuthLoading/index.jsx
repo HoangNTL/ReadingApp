@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch} from 'react-redux';
 import {setUser} from '../../redux/slices/userSlice';
-import {LoadingIndicator} from '../../components/LoadingIndicator';
+import LoadingIndicator from '../../components/LoadingIndicator';
 
 export default function AuthLoading({navigation}) {
   const dispatch = useDispatch();

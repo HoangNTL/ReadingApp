@@ -1,18 +1,27 @@
 import React from 'react';
 import {TouchableOpacity, Text, ActivityIndicator} from 'react-native';
 import {styles} from './style';
+import PropTypes from 'prop-types';
 
-export const ButtonCustom = ({label, onPress, isLoading = false}) => {
+const ButtonCustom = props => {
   return (
     <TouchableOpacity
-      style={[styles.button, isLoading && styles.buttonDisabled]}
-      onPress={onPress}
-      disabled={isLoading}>
-      {isLoading ? (
+      style={[styles.button, props.isLoading && styles.buttonDisabled]}
+      onPress={props.onPress}
+      disabled={props.isLoading}>
+      {props.isLoading ? (
         <ActivityIndicator size="small" color="#FFF" />
       ) : (
-        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.label}>{props.label}</Text>
       )}
     </TouchableOpacity>
   );
 };
+
+ButtonCustom.propTypes = {
+  label: PropTypes.string.isRequired,
+  onPress: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool,
+};
+
+export default ButtonCustom;

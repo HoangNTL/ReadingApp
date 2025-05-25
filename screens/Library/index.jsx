@@ -4,7 +4,7 @@ import globalStyle from '../../assets/styles/GlobalStyle';
 import {getFontFamily} from '../../assets/fonts/helper';
 import {useDispatch, useSelector} from 'react-redux';
 import {Tabs} from './Tabs';
-import {LoadingIndicator} from '../../components/LoadingIndicator';
+import LoadingIndicator from '../../components/LoadingIndicator';
 import {BookList} from './BookList';
 import {
   fetchLikedBooks,

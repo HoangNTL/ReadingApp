@@ -1,7 +1,8 @@
 import React from 'react';
 import {View, ActivityIndicator, StyleSheet} from 'react-native';
+import PropTypes from 'prop-types';
 
-export const LoadingIndicator = ({size = 'large', color = '#007AFF'}) => {
+const LoadingIndicator = ({size = 'large', color = '#007AFF'}) => {
   return (
     <View style={styles.container}>
       <ActivityIndicator size={size} color={color} />
@@ -17,3 +18,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 });
+
+LoadingIndicator.propTypes = {
+  size: PropTypes.oneOf(['small', 'large']),
+  color: PropTypes.string,
+};
+
+export default LoadingIndicator;
