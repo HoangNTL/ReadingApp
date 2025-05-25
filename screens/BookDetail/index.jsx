@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {View, Text, Image, ActivityIndicator} from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import globalStyle from '../../assets/styles/GlobalStyle';
@@ -9,7 +9,7 @@ import {
   faBookOpen,
   faPlus,
 } from '@fortawesome/free-solid-svg-icons';
-import {getBookById} from '../../api/bookApi';
+import {getBookById, saveBook, getSaveStatus} from '../../api/bookApi';
 import {Alert} from 'react-native';
 import {BookStatItem} from '../../components/BookStatItem';
 import {IconButton} from '../../components/IconButton';
@@ -17,12 +17,15 @@ import {GenreList} from '../../components/GenreList';
 import {Header} from './Header';
 import {styles} from './style';
 import {useLoading} from '../../hooks/useLoading';
+import {UserContext} from '../../contexts/UserContext';
 
 const BookDetailScreen = ({navigation}) => {
   const route = useRoute();
   const {bookId} = route.params;
   const [book, setBook] = useState(null);
   const {loading, setLoading} = useLoading();
+  const {user} = useContext(UserContext);
+  const [save, setSave] = useState(false);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -41,8 +44,19 @@ const BookDetailScreen = ({navigation}) => {
       }
     };
 
+    const checkSaveStatus = async () => {
+      try {
+        const status = await getSaveStatus(bookId, user.id);
+        setSave(status.is_saved);
+      } catch (error) {
+        console.error('Error checking save status:', error);
+        Alert.alert('Error', 'Failed to check save status. Please try again.');
+      }
+    };
+
     fetchBookDetails();
-  }, [bookId, setLoading]);
+    checkSaveStatus();
+  }, [bookId, setLoading, setSave, user.id]);
 
   const handleRead = () => {
     if (!book) {
@@ -50,6 +64,17 @@ const BookDetailScreen = ({navigation}) => {
       return;
     }
     navigation.navigate('Reading', {id: bookId, title: book.title});
+  };
+
+  const handleSave = async () => {
+    try {
+      const savedBooks = await saveBook(bookId, user.id);
+      console.log('Book saved successfully:', savedBooks);
+      setSave(savedBooks.is_saved);
+    } catch (error) {
+      console.error('Error saving book:', error);
+      Alert.alert('Error', 'Failed to save the book. Please try again.');
+    }
   };
 
   return (
@@ -124,8 +149,8 @@ const BookDetailScreen = ({navigation}) => {
                 <IconButton
                   variant="outline"
                   icon={faPlus}
-                  label="Save"
-                  onPress={() => console.log('Add to library')}
+                  label={save ? 'Saved' : 'Save'}
+                  onPress={handleSave}
                 />
               </View>
             </View>

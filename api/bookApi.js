@@ -137,3 +137,43 @@ export const getBookByKeyword = async keyword => {
     throw error;
   }
 };
+
+export const saveBook = async (bookId, userId) => {
+  try {
+    const response = await api.post(`/books/${bookId}/save`, {
+      user_id: userId,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error saving book:', error);
+    throw error;
+  }
+};
+
+export const getSaveStatus = async (bookId, userId) => {
+  try {
+    const response = await api.get(`/books/${bookId}/save`, {
+      params: {
+        user_id: userId,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error checking like status:', error);
+    throw error;
+  }
+};
+
+export const getSavedBooks = async userId => {
+  try {
+    const response = await api.get('/books/save', {
+      params: {
+        user_id: userId,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching saved books:', error);
+    throw error;
+  }
+};
