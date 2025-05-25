@@ -4,6 +4,7 @@ import loadingReducer from './slices/loadingSlice';
 import userReducer from './slices/userSlice';
 import libraryReducer from './slices/librarySlice';
 import bookDetailReducer from './slices/bookDetailSlice';
+import readingReducer from './slices/readingSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,5 +13,6 @@ export const store = configureStore({
     user: userReducer,
     library: libraryReducer,
     bookDetail: bookDetailReducer,
+    reading: readingReducer,
   },
 });

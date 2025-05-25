@@ -49,7 +49,7 @@ const RegisterScreen = ({navigation}) => {
   return (
     <>
       <View style={styles.backButton}>
-        <BackButton navigation={navigation} />
+        <BackButton />
       </View>
 
       <View style={styles.container}>
