@@ -1,28 +1,50 @@
-// redux/userSlice.js
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import {loginApi, registerApi} from '../../api/authApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Async thunk cho login
 export const login = createAsyncThunk(
   'user/login',
   async ({email, password}, thunkAPI) => {
-    const response = await loginApi(email, password);
-    if (response) {
-      return response.user;
+    try {
+      const response = await loginApi(email, password);
+      if (response) {
+        await AsyncStorage.setItem('user', JSON.stringify(response.user)); // Store user data in AsyncStorage
+        return response.user;
+      }
+      return thunkAPI.rejectWithValue('Login failed');
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message,
+      );
     }
-    return thunkAPI.rejectWithValue('Login failed');
   },
 );
 
-// Async thunk cho register
 export const register = createAsyncThunk(
   'user/register',
   async ({username, email, password}, thunkAPI) => {
-    const response = await registerApi(username, email, password);
-    if (response) {
-      return response.user;
+    try {
+      const response = await registerApi(username, email, password);
+      if (response) {
+        await AsyncStorage.setItem('user', JSON.stringify(response.user)); // Store user data in AsyncStorage
+        return response.user;
+      }
+      return thunkAPI.rejectWithValue('Register failed');
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message,
+      );
     }
-    return thunkAPI.rejectWithValue('Register failed');
+  },
+);
+
+// Thunk để logout và xóa user trong AsyncStorage
+export const logoutUser = createAsyncThunk(
+  'user/logoutUser',
+  async (_, thunkAPI) => {
+    await AsyncStorage.removeItem('user');
+    // Sau đó dispatch action logout thuần túy để reset state
+    thunkAPI.dispatch(logout());
   },
 );
 
@@ -39,6 +61,11 @@ const userSlice = createSlice({
       state.error = null;
       state.loading = false;
     },
+    setUser(state, action) {
+      state.user = action.payload;
+      state.error = null;
+      state.loading = false;
+    },
   },
   extraReducers: builder => {
     builder
@@ -50,7 +77,6 @@ const userSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload;
-        console.log('Login successful:', action.payload);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -73,6 +99,6 @@ const userSlice = createSlice({
   },
 });
 
-export const {logout} = userSlice.actions;
+export const {logout, setUser} = userSlice.actions;
 
 export default userSlice.reducer;
